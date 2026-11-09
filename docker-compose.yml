@@ -1,0 +1,76 @@
+# The whole system on your computer. Start:  docker compose up --build
+# Then open  http://localhost:8001  (sample PACS)  and  http://localhost:8080  (patient panel).
+# Settings you may change are in .env (copy .env.example to .env).
+name: imaging
+
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+    environment:
+      DATA_DIR: /data
+      DEMO_MODE: "true"
+      SECRET_KEY: ${SECRET_KEY:-local-only-secret-change-me}
+      PACS_API_KEY: ${PACS_API_KEY:-dev-pacs-key}
+      SMS_GATEWAY_URL: http://sandbox:8001/sms/api/send
+      ERX_SERVICE_URL: http://sandbox:8001/erx/api/prescriptions
+      PORTAL_URL: ${PORTAL_URL:-http://localhost:8080}
+      CHECK_DELAY_SECONDS: ${CHECK_DELAY_SECONDS:-60}
+      CHECK_RETRY_SECONDS: ${CHECK_RETRY_SECONDS:-120}
+      CHECKER: ${CHECKER:-fake}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.5-flash}
+      OPENROUTER_MAX_TOKENS: ${OPENROUTER_MAX_TOKENS:-3000}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_BASE_URL: ${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      # Only HTTPS calls (OpenRouter or Gemini) go through this proxy; calls inside Docker do not.
+      HTTPS_PROXY: ${AI_PROXY:-}
+      TZ: Asia/Tehran
+      DATASETS_DIR: /datasets
+      SMOKE_SANDBOX: http://sandbox:8001
+    volumes:
+      - backend-data:/data
+      - ./datasets:/datasets:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  sandbox:
+    build:
+      context: ./sandbox
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+    environment:
+      DATASETS_DIR: /datasets
+      SANDBOX_DATA: /state
+      BACKEND_URL: http://backend:8000
+      PACS_API_KEY: ${PACS_API_KEY:-dev-pacs-key}
+      TZ: Asia/Tehran
+    volumes:
+      - ./datasets:/datasets
+      - sandbox-data:/state
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org/}
+        VITE_API_MODE: hybrid
+        VITE_API_BASE_URL: /api/v1
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  backend-data:
+  sandbox-data:

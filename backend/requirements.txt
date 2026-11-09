@@ -1,0 +1,10 @@
+fastapi>=0.115,<0.116
+uvicorn>=0.30,<1
+python-multipart>=0.0.9
+numpy>=1.26,<3
+pillow>=10.4,<12
+pydicom>=3.0,<4
+# Decoders for compressed DICOM, such as the JPEG 2000 files in the Kaggle mammography set.
+pylibjpeg>=2.0,<3
+pylibjpeg-openjpeg>=2.3,<3
+pylibjpeg-libjpeg>=2.1,<3

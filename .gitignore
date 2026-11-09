@@ -1,0 +1,15 @@
+.env
+node_modules/
+dist/
+__pycache__/
+backend/data/
+sandbox-data/
+datasets/kaggle/*
+!datasets/kaggle/README.md
+datasets/dicom-drawn/
+# Copies and backups of settings that may hold keys (nano writes .env.save)
+.env.*
+!.env.example
+*.save
+# Windows download markers copied into WSL
+*:Zone.Identifier

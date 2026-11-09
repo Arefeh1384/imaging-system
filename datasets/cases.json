@@ -1,0 +1,674 @@
+{
+  "generatedAt": "2026-11-07",
+  "cases": [
+    {
+      "id": "MG-001",
+      "hospital": {
+        "id": "h1",
+        "name": "بیمارستان امام حسین"
+      },
+      "patient": {
+        "name": "سارا رحیمی",
+        "nationalId": "9814605190",
+        "mobile": "09120004521",
+        "birthDate": "1971-02-11",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405001",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.1.1",
+        "title": "ماموگرافی پستان راست، نمای CC",
+        "service": "ماموگرافی پستان راست",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "CC",
+        "date": "2026-10-28"
+      },
+      "image": "dicom/MG-001.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی پستان راست",
+        "text": "ماموگرافی پستان راست در نمای کرانیوکودال انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-10-28T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-001.png",
+      "prescription": {
+        "doctor": "دکتر علی رضایی",
+        "specialty": "جراح عمومی",
+        "patient_name": "سارا رحیمی",
+        "national_id": "9814605190",
+        "service": "ماموگرافی پستان راست",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-10-28"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "نسخه در ZIP. همان روز یک ماموگرافی دیگر هم دارد (MG-002)."
+    },
+    {
+      "id": "MG-002",
+      "hospital": {
+        "id": "h1",
+        "name": "بیمارستان امام حسین"
+      },
+      "patient": {
+        "name": "سارا رحیمی",
+        "nationalId": "9814605190",
+        "mobile": "09120004521",
+        "birthDate": "1972-03-12",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405002",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.2.1",
+        "title": "ماموگرافی پستان چپ، نمای CC",
+        "service": "ماموگرافی پستان چپ",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "CC",
+        "date": "2026-10-28"
+      },
+      "image": "dicom/MG-002.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی پستان چپ",
+        "text": "ماموگرافی پستان چپ در نمای کرانیوکودال انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-10-28T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-002.png",
+      "prescription": {
+        "doctor": "دکتر سیما توکلی",
+        "specialty": "متخصص زنان",
+        "patient_name": "سارا رحیمی",
+        "national_id": "9814605190",
+        "service": "ماموگرافی پستان چپ",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-10-28"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "خدمت دوم همان روز. جدا تأیید می‌شود."
+    },
+    {
+      "id": "MG-003",
+      "hospital": {
+        "id": "h2",
+        "name": "بیمارستان بقیه‌الله"
+      },
+      "patient": {
+        "name": "مریم کاظمی",
+        "nationalId": "5864603597",
+        "mobile": "09121110003",
+        "birthDate": "1973-04-13",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405003",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.3.1",
+        "title": "ماموگرافی پستان چپ، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "MLO",
+        "date": "2026-10-30"
+      },
+      "image": "dicom/MG-003.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان چپ در نمای مدیولترال مایل انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-10-30T13:20:00+03:30"
+      },
+      "prescriptionMode": "erx",
+      "prescriptionImage": null,
+      "prescription": null,
+      "eRxId": "14050323757",
+      "patientUploads": [],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "نسخه در ZIP نیست. بیمار شناسه نسخه الکترونیک را می‌نویسد."
+    },
+    {
+      "id": "MG-004",
+      "hospital": {
+        "id": "h1",
+        "name": "بیمارستان امام حسین"
+      },
+      "patient": {
+        "name": "لیلا صادقی",
+        "nationalId": "8344683289",
+        "mobile": "09120006666",
+        "birthDate": "1974-05-14",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405004",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.4.1",
+        "title": "ماموگرافی پستان راست، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "MLO",
+        "date": "2026-11-01"
+      },
+      "image": "dicom/MG-004.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان راست در نمای مدیولترال مایل انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-01T13:20:00+03:30"
+      },
+      "prescriptionMode": "paper",
+      "prescriptionImage": null,
+      "prescription": null,
+      "eRxId": null,
+      "patientUploads": [
+        "MG-004-prescription.jpg"
+      ],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "نسخه کاغذی. بیمار عکس نسخه را بارگذاری می‌کند."
+    },
+    {
+      "id": "MG-005",
+      "hospital": {
+        "id": "h3",
+        "name": "مرکز تصویربرداری پارس"
+      },
+      "patient": {
+        "name": "نرگس امیری",
+        "nationalId": "2838603191",
+        "mobile": "09121110005",
+        "birthDate": "1975-06-15",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405005",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.5.1",
+        "title": "ماموگرافی پستان چپ، نمای CC",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "CC",
+        "date": "2026-11-02"
+      },
+      "image": "dicom/MG-005.dcm",
+      "report": null,
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-005.png",
+      "prescription": {
+        "doctor": "دکتر سیما توکلی",
+        "specialty": "متخصص زنان",
+        "patient_name": "نرگس امیری",
+        "national_id": "2838603191",
+        "service": "ماموگرافی",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-11-02"
+      },
+      "eRxId": null,
+      "patientUploads": [
+        "MG-005-report.png"
+      ],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "گزارش رادیولوژیست در ZIP نیست. بیمار عکس گزارش را بارگذاری می‌کند."
+    },
+    {
+      "id": "MG-006",
+      "hospital": {
+        "id": "h2",
+        "name": "بیمارستان بقیه‌الله"
+      },
+      "patient": {
+        "name": "زهرا جعفری",
+        "nationalId": "2214659897",
+        "mobile": "09121110006",
+        "birthDate": "1976-07-16",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405006",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.6.1",
+        "title": "ماموگرافی پستان راست، نمای CC",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "CC",
+        "date": "2026-11-02"
+      },
+      "image": "dicom/MG-006.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان راست در نمای کرانیوکودال انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-02T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-006.png",
+      "prescription": {
+        "doctor": "دکتر مریم احمدی",
+        "specialty": "متخصص زنان",
+        "patient_name": "زهرا جعفری",
+        "national_id": "2214659897",
+        "service": "سونوگرافی شکم و لگن",
+        "reason": "درد شکم",
+        "date": "2026-11-02"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": "PRESCRIPTION_STUDY",
+      "expected": "رد: نسخه با تصویر نمی‌خواند",
+      "note": "مغایرت عمدی: نسخه برای سونوگرافی است، تصویر ماموگرافی."
+    },
+    {
+      "id": "MG-007",
+      "hospital": {
+        "id": "h1",
+        "name": "بیمارستان امام حسین"
+      },
+      "patient": {
+        "name": "فاطمه مرادی",
+        "nationalId": "7834193694",
+        "mobile": "09121110007",
+        "birthDate": "1977-08-17",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405007",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.7.1",
+        "title": "ماموگرافی پستان چپ، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "MLO",
+        "date": "2026-11-03"
+      },
+      "image": "dicom/MG-007.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان چپ در نمای مدیولترال مایل انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-03T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-007.png",
+      "prescription": {
+        "doctor": "دکتر علی رضایی",
+        "specialty": "جراح عمومی",
+        "patient_name": "فاطمه مرادیان",
+        "national_id": "7834193694",
+        "service": "ماموگرافی",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-11-03"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": "PRESCRIPTION_NAME",
+      "expected": "رد: نام روی نسخه",
+      "note": "مغایرت عمدی: نام روی نسخه با نام بیمار یکی نیست."
+    },
+    {
+      "id": "MG-008",
+      "hospital": {
+        "id": "h3",
+        "name": "مرکز تصویربرداری پارس"
+      },
+      "patient": {
+        "name": "الهام نوری",
+        "nationalId": "5154790790",
+        "mobile": "09121110008",
+        "birthDate": "1978-09-18",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405008",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.8.1",
+        "title": "ماموگرافی پستان راست، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "MLO",
+        "date": "2026-11-03"
+      },
+      "image": "dicom/MG-008.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان راست در نمای مدیولترال مایل انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-03T13:20:00+03:30"
+      },
+      "prescriptionMode": "erx",
+      "prescriptionImage": null,
+      "prescription": null,
+      "eRxId": "14050863352",
+      "patientUploads": [],
+      "fault": "PRESCRIPTION_NAME",
+      "expected": "رد: نام روی نسخه",
+      "note": "مغایرت عمدی: نسخه الکترونیک به نام کس دیگری است."
+    },
+    {
+      "id": "MG-009",
+      "hospital": {
+        "id": "h2",
+        "name": "بیمارستان بقیه‌الله"
+      },
+      "patient": {
+        "name": "شیرین حسینی",
+        "nationalId": "6319495049",
+        "mobile": "09121110009",
+        "birthDate": "1979-01-10",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405009",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.9.1",
+        "title": "ماموگرافی پستان چپ، نمای CC",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "CC",
+        "date": "2026-11-04"
+      },
+      "image": "dicom/MG-009.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان چپ در نمای کرانیوکودال انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-04T13:20:00+03:30"
+      },
+      "prescriptionMode": "erx",
+      "prescriptionImage": null,
+      "prescription": null,
+      "eRxId": "14050971271",
+      "patientUploads": [],
+      "fault": "PRESCRIPTION_STUDY",
+      "expected": "رد: نسخه با تصویر نمی‌خواند",
+      "note": "مغایرت عمدی: نسخه الکترونیک برای سی‌تی‌اسکن است."
+    },
+    {
+      "id": "MG-010",
+      "hospital": {
+        "id": "h1",
+        "name": "بیمارستان امام حسین"
+      },
+      "patient": {
+        "name": "مینا کریمی",
+        "nationalId": "5384603194",
+        "mobile": "09121110010",
+        "birthDate": "1980-02-11",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405010",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.10.1",
+        "title": "ماموگرافی پستان راست، نمای CC",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "CC",
+        "date": "2026-11-04"
+      },
+      "image": "dicom/MG-010.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "سونوگرافی کبد و کیسه صفرا",
+        "text": "کبد با اندازه طبیعی و اکوی همگن. کیسه صفرا بدون سنگ. مجاری صفراوی گشاد نیستند. طحال و کلیه‌ها طبیعی‌اند.",
+        "signedAt": "2026-11-04T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-010.png",
+      "prescription": {
+        "doctor": "دکتر علی رضایی",
+        "specialty": "جراح عمومی",
+        "patient_name": "مینا کریمی",
+        "national_id": "5384603194",
+        "service": "ماموگرافی",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-11-04"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": "REPORT_IMAGES",
+      "expected": "رد: گزارش با تصویر نمی‌خواند",
+      "note": "مغایرت عمدی: گزارش درباره سونوگرافی کبد است، نه این ماموگرافی."
+    },
+    {
+      "id": "MG-011",
+      "hospital": {
+        "id": "h3",
+        "name": "مرکز تصویربرداری پارس"
+      },
+      "patient": {
+        "name": "پریسا رستمی",
+        "nationalId": "4868793004",
+        "mobile": "09121110011",
+        "birthDate": "1981-03-12",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405011",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.11.1",
+        "title": "ماموگرافی پستان چپ، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "MLO",
+        "date": "2026-11-05"
+      },
+      "image": "dicom/MG-011.dcm",
+      "report": null,
+      "prescriptionMode": "paper",
+      "prescriptionImage": null,
+      "prescription": null,
+      "eRxId": null,
+      "patientUploads": [
+        "MG-011-prescription.jpg",
+        "MG-011-report.png"
+      ],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "نسخه کاغذی و گزارش هر دو بارگذاری می‌شوند."
+    },
+    {
+      "id": "MG-012",
+      "hospital": {
+        "id": "h2",
+        "name": "بیمارستان بقیه‌الله"
+      },
+      "patient": {
+        "name": "نسرین قاسمی",
+        "nationalId": "2219492631",
+        "mobile": "09121110012",
+        "birthDate": "1982-04-13",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405012",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.12.1",
+        "title": "ماموگرافی پستان راست، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "MLO",
+        "date": "2026-11-05"
+      },
+      "image": "dicom/MG-012.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان راست در نمای مدیولترال مایل انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-05T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-012.png",
+      "prescription": {
+        "doctor": "دکتر مریم احمدی",
+        "specialty": "متخصص زنان",
+        "patient_name": "نسرین قاسمی",
+        "national_id": "2219492631",
+        "service": "ماموگرافی",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-11-05"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "برای آزمون «نه، نگرفته‌ام»: بیمار بگوید این خدمت را نگرفته است."
+    },
+    {
+      "id": "MG-013",
+      "hospital": {
+        "id": "h1",
+        "name": "بیمارستان امام حسین"
+      },
+      "patient": {
+        "name": "سمیه باقری",
+        "nationalId": "9868673593",
+        "mobile": "09121110013",
+        "birthDate": "1983-05-14",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405013",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.13.1",
+        "title": "ماموگرافی پستان چپ، نمای CC",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "CC",
+        "date": "2026-11-06"
+      },
+      "image": null,
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان چپ در نمای کرانیوکودال انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-06T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-013.png",
+      "prescription": {
+        "doctor": "دکتر علی رضایی",
+        "specialty": "جراح عمومی",
+        "patient_name": "سمیه باقری",
+        "national_id": "9868673593",
+        "service": "ماموگرافی",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-11-06"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": "NO_IMAGES",
+      "expected": "ZIP رد می‌شود",
+      "note": "ZIP ناقص: تصویر DICOM ندارد و رد می‌شود."
+    },
+    {
+      "id": "MG-014",
+      "hospital": {
+        "id": "h3",
+        "name": "مرکز تصویربرداری پارس"
+      },
+      "patient": {
+        "name": "هانیه شریفی",
+        "nationalId": "9889194643",
+        "mobile": "09121110014",
+        "birthDate": "1984-06-15",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405014",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.14.1",
+        "title": "ماموگرافی پستان راست، نمای CC",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "R",
+        "view": "CC",
+        "date": "2026-11-06"
+      },
+      "image": "dicom/MG-014.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان راست در نمای کرانیوکودال انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-06T13:20:00+03:30"
+      },
+      "prescriptionMode": "erx",
+      "prescriptionImage": null,
+      "prescription": null,
+      "eRxId": "14051410866",
+      "patientUploads": [],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "نسخه الکترونیک درست. برای آزمون، اول یک شناسه اشتباه بنویسید."
+    },
+    {
+      "id": "MG-015",
+      "hospital": {
+        "id": "h2",
+        "name": "بیمارستان بقیه‌الله"
+      },
+      "patient": {
+        "name": "رویا ملکی",
+        "nationalId": "5964606644",
+        "mobile": "09121110015",
+        "birthDate": "1985-07-16",
+        "sex": "F"
+      },
+      "study": {
+        "accessionNumber": "ACC1405015",
+        "studyInstanceUid": "1.2.826.0.1.3680043.10.1405.15.1",
+        "title": "ماموگرافی پستان چپ، نمای MLO",
+        "service": "ماموگرافی",
+        "modality": "MG",
+        "bodyPart": "BREAST",
+        "laterality": "L",
+        "view": "MLO",
+        "date": "2026-11-07"
+      },
+      "image": "dicom/MG-015.dcm",
+      "report": {
+        "doctor": "دکتر نادر کیانی، رادیولوژیست",
+        "study": "ماموگرافی",
+        "text": "ماموگرافی پستان چپ در نمای مدیولترال مایل انجام شد. بافت پستان از نوع فیبروگلاندولار پراکنده است. توده یا عدم تقارن مشکوک دیده نمی‌شود. چند کلسیفیکاسیون نقطه‌ای خوش‌خیم دیده می‌شود. BI-RADS 2، پیگیری روتین.",
+        "signedAt": "2026-11-07T13:20:00+03:30"
+      },
+      "prescriptionMode": "pacs",
+      "prescriptionImage": "prescriptions/MG-015.png",
+      "prescription": {
+        "doctor": "دکتر مریم احمدی",
+        "specialty": "متخصص زنان",
+        "patient_name": "رویا ملکی",
+        "national_id": "5964606644",
+        "service": "ماموگرافی",
+        "reason": "غربالگری سرطان پستان",
+        "date": "2026-11-07"
+      },
+      "eRxId": null,
+      "patientUploads": [],
+      "fault": null,
+      "expected": "ارسال به بیمه",
+      "note": "برای آزمون ZIP تکراری: دو بار بفرستید."
+    }
+  ]
+}
