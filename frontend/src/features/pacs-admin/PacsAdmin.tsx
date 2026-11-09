@@ -1,6 +1,6 @@
 // The PACS admin panel: how much each medical center has sent. Counts only, nothing about patients.
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { api, isMockMode, isPacsAdminMock } from '../../api/client';
+import { api, isPacsAdminMock, showDemoAccounts } from '../../api/client';
 import type { SendPeriod, SendVolume } from '../../api/types';
 import { AppShell, type NavItem } from '../../components/AppShell';
 import { AuthLayout, Button, buttonClass, ExpandRow, Field, LoadState, Notice, PageTitle, PasswordInput, ResponsiveTable } from '../../components/ui';
@@ -56,7 +56,7 @@ export function PacsAdminLogin() {
           <PasswordInput id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         {error ? <Notice tone="bad">{error}</Notice> : null}
-        {isMockMode ? (
+        {showDemoAccounts ? (
           <div className="text-caption text-muted">
             حساب آزمایشی: <bdi dir="ltr">pacs-admin / pacs1234</bdi>
           </div>

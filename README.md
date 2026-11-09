@@ -1,6 +1,6 @@
 # Imaging and insurance system
 
-The frontend plus the backend for the patient and insurance panels: a hospital PACS sends a ZIP, the patient gets an SMS, signs in, confirms the service and the prescription, and presses «تأیید». Later the system fetches the e-prescription, checks the prescription, report and image against each other, and either sends the case to the insurer with its share or rejects it. The patient is told by SMS either way.
+The frontend and its backend, with all four panels connected: a hospital PACS sends a ZIP, the patient gets an SMS, signs in, confirms the service and the prescription, and presses «تأیید». Later the system fetches the e-prescription, checks the prescription, report and image against each other, and either sends the case to the insurer with its share or rejects it. The patient is told by SMS either way.
 
 The PACS, the SMS gateway and the e-prescription service are stand-ins in the **sandbox**, so the whole path runs on one computer with invented data.
 
@@ -10,8 +10,8 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
 
 | Folder | What it is | Port |
 | --- | --- | --- |
-| `frontend/` | React app (the same one as before). Built with `VITE_API_MODE=hybrid`: the patient, insurance and PACS admin panels call the backend, the main admin panel stays on sample data. | 8080 |
-| `backend/` | FastAPI + SQLite. PACS intake, patient sign-in, the patient's case actions, the background check, the insurance panel and the PACS admin panel. API docs at `/docs`. | 8000 |
+| `frontend/` | React app. Docker builds it with `VITE_API_MODE=http`: every panel (patient, insurance, PACS admin, main admin) calls the backend. `VITE_DEMO_ACCOUNTS=true` shows the test accounts on the sign-in pages. | 8080 |
+| `backend/` | FastAPI + SQLite. PACS intake, patient sign-in, the patient's case actions, the background check, and the insurance, PACS admin and main admin panels. API docs at `/docs`. | 8000 |
 | `sandbox/` | Sample PACS with an «ارسال» button per study, SMS inbox, e-prescription service. | 8001 |
 | `datasets/` | 15 invented mammography cases: DICOM, details, reports, prescriptions, e-prescriptions, photos for the patient to upload. | |
 | `docs/` | The Docker guide. | |
@@ -30,6 +30,16 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
    - All pass: `AT_INSURER`, the share from the price list (mammography 600,000 Toman), SMS "پرونده شما کامل است و برای بیمه ارسال شد". The case appears in the insurance panel's case list with the prescription, the report, the DICOM picture, the AI's findings and the share.
    - A conflict: `REJECTED_CONFLICT` with the reason, SMS to call the center.
    - Checker unreachable: tried again in 5 minutes.
+
+## Main admin panel
+
+At `/admin`. Everything, for whoever runs the system:
+- **Companies and hospitals:** each hospital belongs to a company, which the relay can send with the hospital (`hospital.company` in `metadata.json`); hospitals without one go under «بدون شرکت». Totals, fees and recent activity per company and hospital.
+- **Fees:** each hospital has a fee rule (fee per ZIP and its split between hospital, insurer and management). Each accepted ZIP records its fee and split when it arrives, so changing a rule affects only later ZIPs. A ZIP's split can be edited until it is settled; settling locks it.
+- **ZIPs:** every ZIP, accepted or refused, searchable and filterable by hospital, case stage, billing and settlement. A ZIP's page shows the full case (documents, DICOM pictures, the AI's answer, events, SMS), the fee, settlement and a reminder SMS for patients who haven't finished. Every ZIP the relay sends is kept and can be downloaded as sent (except ones over the size limit).
+- **Accounts:** insurance accounts and patients, with "view as" to see exactly what they see. Every "view as" is written to the access log.
+
+The upgrade adds its columns to an existing database on the next start and fills them in: earlier hospitals go under «بدون شرکت» until the relay sends their company, and earlier accepted ZIPs get the default fee.
 
 ## PACS admin panel
 
@@ -60,9 +70,16 @@ At `/pacs-admin`, for whoever runs the PACS relay. It answers one question: how 
 | `GET /api/v1/insurance/dashboard` | Counts, shares and fees, overall and per center. |
 | `GET /api/v1/insurance/cases` | Approved cases only, newest first. `hospitalId`, `page`, `pageSize`. |
 | `GET /api/v1/insurance/cases/{id}` | One approved case: patient, documents, AI opinion, share. Rejected or waiting cases answer 404. |
-| `GET /api/v1/imaging/cases/{id}/images` | The DICOM pictures of an approved case, as PNG. |
+| `GET /api/v1/imaging/cases/{id}/images` | The DICOM pictures as PNG: approved cases for the insurer, any case for the main admin. |
 | `POST /api/v1/pacs-admin/login` | PACS admin sign-in (`PACS_ADMIN_USERNAME`, `PACS_ADMIN_PASSWORD`). |
 | `GET /api/v1/pacs-admin/volume` | How many ZIPs each center sent: `period` = `today`, `7d`, `30d` or `all`. Counts, size and last send per center, and one count per day. No patient data. |
+| `POST /api/v1/admin/login` | Main admin sign-in (`ADMIN_USERNAME`, `ADMIN_PASSWORD`). |
+| `GET /api/v1/admin/overview`, `/admin/companies/{id}`, `/admin/hospitals/{id}` | Totals, fees, case pipeline and recent activity. |
+| `PUT /api/v1/admin/hospitals/{id}/fee-rule` | A hospital's fee per ZIP and its split, for later ZIPs. |
+| `GET /api/v1/admin/zips`, `/admin/zips/{id}`, `/admin/zips/{id}/file` | ZIP list (search, hospital, group, pages, fee totals), one ZIP with its case, and the file as sent. |
+| `PUT /api/v1/admin/zips/{id}/split`, `POST /admin/zips/{id}/settle` | Edit a ZIP's split; record its settlement, which locks it. |
+| `POST /api/v1/admin/cases/{id}/resend-invite` | Reminder SMS to a patient who hasn't finished. |
+| `GET /api/v1/admin/accounts/staff`, `/patients`, `/access-log`; `POST .../view-as` | Accounts, "view as", and its log. |
 | `/api/v1/dev/...` | Demo tools (list cases, events, check now, reset). Only with `DEMO_MODE=true`. |
 
 Errors come back as `{"code": "...", "message": "..."}` with a Persian message, which the frontend shows as is.
@@ -73,7 +90,8 @@ Errors come back as `{"code": "...", "message": "..."}` with a Persian message, 
 
 ## Not real yet
 
-- The main admin panel still runs on sample data in the browser. Its endpoints are the next step.
+- The main admin's account list shows insurance accounts only; the PACS admin and main admin accounts are managed through `.env` for now.
+- The PACS simulator page and the "run the check now" button exist only in sample mode; with the backend, the sandbox's PACS page sends ZIPs and the check runs on its own.
 - SMS and the e-prescription service are stand-ins. Real ones mean changing `SMS_GATEWAY_URL`, `ERX_SERVICE_URL` and the request shapes in `backend/app/gateways.py`.
 - Demo mode returns the one-time code to the page and opens `/api/v1/dev`. Set `DEMO_MODE=false` anywhere other than your own computer.
 - SQLite fits a single server and testing. For production, PostgreSQL is the usual move; `backend/app/db.py` is the only file that talks to the database.

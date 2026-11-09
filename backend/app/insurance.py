@@ -15,13 +15,14 @@ def _not_here() -> ApiError:
 
 
 def _totals(zips: list[dict]) -> dict:
+    """Counts and fees of a set of ZIPs, from the fee each ZIP recorded when it arrived."""
     accepted = sum(1 for z in zips if z['status'] == 'READY')
-    rule = tariff.FEE_RULE
+    get = lambda z, k: z.get(k) or 0  # noqa: E731
     return {
         'received': len(zips), 'accepted': accepted, 'notBillable': len(zips) - accepted,
-        'feeRial': accepted * rule['feeRial'], 'hospitalRial': accepted * rule['hospitalRial'],
-        'insuranceRial': accepted * rule['insuranceRial'], 'managementRial': accepted * rule['managementRial'],
-        'settledHospitalRial': 0,
+        'feeRial': sum(get(z, 'fee_rial') for z in zips), 'hospitalRial': sum(get(z, 'hospital_rial') for z in zips),
+        'insuranceRial': sum(get(z, 'insurance_rial') for z in zips), 'managementRial': sum(get(z, 'management_rial') for z in zips),
+        'settledHospitalRial': sum(get(z, 'hospital_rial') for z in zips if z.get('settled')),
     }
 
 
@@ -46,7 +47,7 @@ def _share(cases: list[dict]) -> int:
 
 def dashboard() -> dict:
     cases = db.all_rows('SELECT id, hospital_id, stage, conflict, insurance_share FROM cases')
-    zips = db.all_rows('SELECT status, hospital_id FROM zips')
+    zips = db.all_rows('SELECT status, hospital_id, fee_rial, hospital_rial, insurance_rial, management_rial, settled FROM zips')
     hospitals = []
     for h in db.all_rows('SELECT id, name FROM hospitals ORDER BY name'):
         hc = [c for c in cases if c['hospital_id'] == h['id']]
@@ -101,7 +102,12 @@ def _open_case(case_id: str) -> dict:
 
 
 def case_record(case_id: str) -> dict:
-    c = _open_case(case_id)
+    return record_of(_open_case(case_id))
+
+
+def record_of(c: dict, invite_token: bool = False) -> dict:
+    """The full CaseRecord. Only the main admin also gets the invite token, which it needs to resend the SMS."""
+    case_id = c['id']
     p = db.one('SELECT * FROM patients WHERE id = ?', (c['patient_id'],))
     h = db.one('SELECT name FROM hospitals WHERE id = ?', (c['hospital_id'],))
     study = c['study'] or {}
@@ -116,7 +122,7 @@ def case_record(case_id: str) -> dict:
         'documents': {d['key']: _document(d) for d in db.all_rows('SELECT * FROM documents WHERE case_id = ?', (case_id,))},
         'requestedItems': c['requested_items'], 'requiredItems': c['required_items'],
         'confirmItems': c['confirm_items'], 'confirmedItems': c['confirmed_items'],
-        'inviteToken': '',
+        'inviteToken': c['invite_token'] if invite_token else '',
         'sms': [{'id': s['id'], 'kind': s['kind'], 'sentAt': s['sent_at'], 'delivery': 'SENT' if s['delivery'] == 'SENT' else 'FAILED', 'text': s['text']}
                 for s in db.all_rows('SELECT * FROM sms WHERE case_id = ? ORDER BY sent_at', (case_id,)) if s['kind'] in SMS_KINDS],
         'events': [{'id': e['id'], 'at': e['at'], 'actor': e['actor'], 'title': e['title']}
@@ -129,9 +135,14 @@ def case_record(case_id: str) -> dict:
     return out
 
 
-def study_images(case_id: str) -> list[dict]:
-    """The DICOM pictures as PNG, inside the answer, so the page can show them without another signed request."""
-    _open_case(case_id)
+def study_images(case_id: str, any_stage: bool = False) -> list[dict]:
+    """The DICOM pictures as PNG, inside the answer, so the page can show them without another signed request.
+    The insurer sees only approved cases; the main admin (any_stage) sees every case."""
+    if any_stage:
+        if not db.one('SELECT id FROM cases WHERE id = ?', (case_id,)):
+            raise _not_here()
+    else:
+        _open_case(case_id)
     out = []
     for image in db.all_rows('SELECT * FROM images WHERE case_id = ? ORDER BY label', (case_id,)):
         png, width, height = review.png_of(image)

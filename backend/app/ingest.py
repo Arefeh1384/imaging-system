@@ -17,7 +17,7 @@ import shutil
 import zipfile
 from pathlib import PurePosixPath
 
-from . import db, dicomio, files
+from . import db, dicomio, files, tariff
 from .config import settings
 from .gateways import send_sms
 from .text import invite_sms, is_national_id, latin_digits
@@ -78,19 +78,45 @@ def receive(file_name: str, data: bytes) -> dict:
         images = sorted(n for n in names if n.lower().endswith('.dcm'))
         if not images:
             raise Rejected('REJECTED_INCOMPLETE', 'NO_IMAGES', 'تصویر پزشکی (DICOM) در ZIP نیست.')
+        record['study_title'] = meta['study'].get('service') or meta['study']['title']
+        _ensure_hospital(meta['hospital'])
         if db.one("SELECT id FROM zips WHERE study_uid = ? AND status = 'READY'", (record['study_uid'],)):
             raise Rejected('DUPLICATE', 'DUPLICATE', 'این تصویربرداری قبلاً رسیده است.')
         case_id = _create_case(zip_id, zf, names, images, meta)
         record['case_id'] = case_id
-        zpath = files.zip_path(zip_id)
-        zpath.write_bytes(data)
-        record['path'] = files.rel(zpath)
+        # The fee and its split are fixed when the ZIP arrives, from the hospital's rule at that moment.
+        rule = db.one('SELECT fee_rial, hospital_rial, insurance_rial, management_rial FROM hospitals WHERE id = ?', (record['hospital_id'],))
+        record.update(rule)
+        _keep_file(record, data)
         db.insert('zips', record)
         return {'zipId': zip_id, 'status': 'READY', 'caseId': case_id}
     except Rejected as rej:
-        record.update(status=rej.status, reject_code=rej.code, reject_reason=rej.reason)
+        record.update(status=rej.status, reject_code=rej.code, reject_reason=rej.reason, fee_rial=0, hospital_rial=0, insurance_rial=0, management_rial=0)
+        if rej.status != 'REJECTED_TOO_LARGE':
+            _keep_file(record, data)  # refused packages are kept too, so the admin can download and look at them
         db.insert('zips', record)
         return {'zipId': zip_id, 'status': rej.status, 'rejectCode': rej.code, 'rejectReason': rej.reason}
+
+
+def _keep_file(record: dict, data: bytes) -> None:
+    zpath = files.zip_path(record['id'])
+    zpath.write_bytes(data)
+    record['path'] = files.rel(zpath)
+
+
+def _ensure_hospital(hospital: dict) -> None:
+    """The hospital, and the company it belongs to when the relay says. New hospitals get the default fee rule."""
+    company = hospital.get('company') or {}
+    company_id = company.get('id') or db.DEFAULT_COMPANY[0]
+    if not db.one('SELECT id FROM companies WHERE id = ?', (company_id,)):
+        db.insert('companies', {'id': company_id, 'name': company.get('name') or db.DEFAULT_COMPANY[1]})
+    existing = db.one('SELECT company_id FROM hospitals WHERE id = ?', (hospital['id'],))
+    if existing and company.get('id') and existing['company_id'] in (None, db.DEFAULT_COMPANY[0]):
+        db.update('hospitals', {'id': hospital['id']}, {'company_id': company_id})  # the relay now says which company it is
+    if not existing:
+        db.insert('hospitals', {'id': hospital['id'], 'name': hospital['name'], 'company_id': company_id, 'fee_rial': tariff.FEE_RULE['feeRial'],
+                                'hospital_rial': tariff.FEE_RULE['hospitalRial'], 'insurance_rial': tariff.FEE_RULE['insuranceRial'],
+                                'management_rial': tariff.FEE_RULE['managementRial']})
 
 
 def _create_case(zip_id: str, zf: zipfile.ZipFile, names: list[str], images: list[str], meta: dict) -> str:
@@ -113,8 +139,6 @@ def _create_case(zip_id: str, zf: zipfile.ZipFile, names: list[str], images: lis
         image_rows.append({'id': db.new_id('img'), 'case_id': case_id, 'label': label, 'path': files.rel(path), 'width': info.cols, 'height': info.rows})
 
     hospital, patient, study = meta['hospital'], meta['patient'], meta['study']
-    if not db.one('SELECT id FROM hospitals WHERE id = ?', (hospital['id'],)):
-        db.insert('hospitals', {'id': hospital['id'], 'name': hospital['name']})
     existing = db.one('SELECT * FROM patients WHERE national_id = ?', (patient['nationalId'],))
     if existing:
         patient_id = existing['id']

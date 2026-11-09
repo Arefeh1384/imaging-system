@@ -217,7 +217,7 @@ function CaseSections({ record, missing, onChange }: { record: CaseRecord; missi
       </section>
 
       <section className={`${CARD} flex flex-col gap-2`}>
-        <h2>بررسی هوش مصنوعی</h2>
+        <h2>{record.aiOpinion?.byAi === false ? 'بررسی آزمایشی (بدون هوش مصنوعی)' : 'بررسی هوش مصنوعی'}</h2>
         <AiOpinionCard opinion={record.aiOpinion} />
       </section>
 

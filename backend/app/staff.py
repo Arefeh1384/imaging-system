@@ -44,6 +44,7 @@ def ensure_default_account() -> None:
     """Makes the first insurance and PACS admin accounts from .env, once. Later changes to .env don't touch them."""
     _ensure(settings.insurance_username, settings.insurance_password, settings.insurance_name, 'INSURANCE_ADMIN')
     _ensure(settings.pacs_admin_username, settings.pacs_admin_password, settings.pacs_admin_name, 'PACS_ADMIN')
+    _ensure(settings.admin_username, settings.admin_password, settings.admin_name, 'ADMIN')
 
 
 def login(username: str, password: str, role: str = 'INSURANCE_ADMIN') -> dict:
@@ -74,6 +75,19 @@ def _signed_in(authorization: str | None, role: str) -> dict:
 def current_insurer(authorization: str | None = Header(default=None)) -> dict:
     """FastAPI dependency: the signed-in insurance account, from 'Authorization: Bearer <token>'."""
     return _signed_in(authorization, 'INSURANCE_ADMIN')
+
+
+def current_admin(authorization: str | None = Header(default=None)) -> dict:
+    """FastAPI dependency: the signed-in main admin."""
+    return _signed_in(authorization, 'ADMIN')
+
+
+def insurer_or_admin(authorization: str | None = Header(default=None)) -> dict:
+    """FastAPI dependency for what both the insurance panel and the main admin read, such as a case's pictures."""
+    try:
+        return _signed_in(authorization, 'INSURANCE_ADMIN')
+    except ApiError:
+        return _signed_in(authorization, 'ADMIN')
 
 
 def current_pacs_admin(authorization: str | None = Header(default=None)) -> dict:

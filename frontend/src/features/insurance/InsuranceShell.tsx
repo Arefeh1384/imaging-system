@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { api, insuranceShowsSample, isMockMode } from '../../api/client';
+import { api, insuranceShowsSample, showDemoAccounts } from '../../api/client';
 import type { StaffRole } from '../../api/types';
 import { AppShell, type NavItem } from '../../components/AppShell';
 import { AuthLayout, Button, Field, Notice, ViewAsBanner, PasswordInput } from '../../components/ui';
@@ -43,7 +43,7 @@ export function InsuranceLogin() {
           <PasswordInput id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         {error ? <Notice tone="bad">{error}</Notice> : null}
-        {isMockMode ? (
+        {showDemoAccounts ? (
           <div className="text-caption text-muted">
             حساب آزمایشی: <bdi dir="ltr">dana-admin / dana1234</bdi>
           </div>

@@ -32,6 +32,8 @@ HOSPITALS = {
     'h2': 'بیمارستان بقیه‌الله',
     'h3': 'مرکز تصویربرداری پارس',
 }
+# The company each hospital belongs to, as the relay sends it with the hospital. The main admin groups hospitals by it.
+COMPANIES = {'h1': {'id': 'c1', 'name': 'شرکت دکتر نیکان'}, 'h2': {'id': 'c1', 'name': 'شرکت دکتر نیکان'}, 'h3': {'id': 'c2', 'name': 'شرکت نمونه دوم'}}
 RADIOLOGIST = 'دکتر نادر کیانی، رادیولوژیست'
 DOCTORS = ['دکتر مریم احمدی، متخصص زنان', 'دکتر علی رضایی، جراح عمومی', 'دکتر سیما توکلی، متخصص زنان']
 
@@ -399,7 +401,7 @@ def main() -> None:
 
         cases_out.append({
             'id': c['id'],
-            'hospital': {'id': c['hospital'], 'name': HOSPITALS[c['hospital']]},
+            'hospital': {'id': c['hospital'], 'name': HOSPITALS[c['hospital']], 'company': COMPANIES[c['hospital']]},
             'patient': patient,
             'study': study,
             'image': image_file,

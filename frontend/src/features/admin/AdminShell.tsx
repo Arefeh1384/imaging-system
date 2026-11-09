@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { api, isMockMode } from '../../api/client';
+import { api, isMockMode, showDemoAccounts } from '../../api/client';
 import { AppShell, type NavItem } from '../../components/AppShell';
 import { AuthLayout, Button, Field, Notice, PasswordInput } from '../../components/ui';
 import { Link, Redirect, useNavigate, usePath } from '../../lib/router';
@@ -38,9 +38,9 @@ export function AdminLogin() {
           <PasswordInput id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
         {error ? <Notice tone="bad">{error}</Notice> : null}
-        {isMockMode ? (
+        {showDemoAccounts ? (
           <p className="text-caption text-muted">
-            در حالت نمونه: نام کاربری <bdi dir="ltr">admin</bdi> و رمز <bdi dir="ltr">admin1234</bdi>
+            حساب آزمایشی: <bdi dir="ltr">admin / admin1234</bdi>
           </p>
         ) : null}
         <Button type="submit" busy={busy} disabled={!username || !password}>

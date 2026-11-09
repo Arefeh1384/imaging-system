@@ -16,6 +16,17 @@ from typing import Any, Iterator
 from .config import settings
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS companies (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS access_log (
+  id TEXT PRIMARY KEY,
+  at TEXT NOT NULL,
+  account_name TEXT NOT NULL,
+  account_label TEXT NOT NULL,
+  admin_name TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS hospitals (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL
@@ -157,12 +168,36 @@ def new_id(prefix: str) -> str:
     return f'{prefix}-{uuid.uuid4().hex[:12]}'
 
 
+# Columns added after the first version. Existing databases get them on start-up, with values filled in.
+ADDED_COLUMNS = {
+    'hospitals': ['company_id TEXT', 'fee_rial INTEGER', 'hospital_rial INTEGER', 'insurance_rial INTEGER', 'management_rial INTEGER'],
+    'zips': ['fee_rial INTEGER', 'hospital_rial INTEGER', 'insurance_rial INTEGER', 'management_rial INTEGER',
+             'settled INTEGER NOT NULL DEFAULT 0', 'settled_at TEXT', 'study_title TEXT'],
+}
+DEFAULT_COMPANY = ('c-default', 'بدون شرکت')
+
+
 def init() -> None:
+    from .tariff import FEE_RULE  # here, to keep db free of import cycles
+
     with _init_lock:
         settings.data_dir.mkdir(parents=True, exist_ok=True)
         settings.files_dir.mkdir(parents=True, exist_ok=True)
         with connect() as con:
             con.executescript(SCHEMA)
+            for table, columns in ADDED_COLUMNS.items():
+                have = {r['name'] for r in con.execute(f'PRAGMA table_info({table})')}
+                for column in columns:
+                    if column.split()[0] not in have:
+                        con.execute(f'ALTER TABLE {table} ADD COLUMN {column}')
+            rule = (FEE_RULE['feeRial'], FEE_RULE['hospitalRial'], FEE_RULE['insuranceRial'], FEE_RULE['managementRial'])
+            con.execute('UPDATE hospitals SET fee_rial = ?, hospital_rial = ?, insurance_rial = ?, management_rial = ? WHERE fee_rial IS NULL', rule)
+            con.execute("UPDATE zips SET fee_rial = ?, hospital_rial = ?, insurance_rial = ?, management_rial = ? WHERE fee_rial IS NULL AND status = 'READY'", rule)
+            con.execute('UPDATE zips SET fee_rial = 0, hospital_rial = 0, insurance_rial = 0, management_rial = 0 WHERE fee_rial IS NULL')
+            con.execute('UPDATE zips SET study_title = (SELECT study_title FROM cases WHERE cases.zip_id = zips.id) WHERE study_title IS NULL AND case_id IS NOT NULL')
+            if con.execute('SELECT 1 FROM hospitals WHERE company_id IS NULL').fetchone():
+                con.execute('INSERT OR IGNORE INTO companies (id, name) VALUES (?, ?)', DEFAULT_COMPANY)
+                con.execute('UPDATE hospitals SET company_id = ? WHERE company_id IS NULL', (DEFAULT_COMPANY[0],))
 
 
 @contextmanager
@@ -229,5 +264,5 @@ def wipe() -> None:
     """Deletes every row. Only reachable from the demo tools."""
     with connect() as con:
         # Staff accounts and their sessions stay, so the insurance panel keeps working after a demo reset.
-        for table in ('hospitals', 'patients', 'zips', 'cases', 'documents', 'images', 'sms', 'events', 'otp', 'sessions'):
+        for table in ('companies', 'hospitals', 'patients', 'zips', 'cases', 'documents', 'images', 'sms', 'events', 'otp', 'sessions', 'access_log'):
             con.execute(f'DELETE FROM {table}')

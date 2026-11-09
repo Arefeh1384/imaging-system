@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from .. import insurance, staff
-from ..staff import current_insurer
+from ..staff import current_insurer, insurer_or_admin
 
 router = APIRouter(prefix='/api/v1', tags=['insurance'])
 
@@ -37,5 +37,6 @@ def get_case(case_id: str, account: dict = Depends(current_insurer)):
 
 
 @router.get('/imaging/cases/{case_id}/images')
-def study_images(case_id: str, account: dict = Depends(current_insurer)):
-    return insurance.study_images(case_id)
+def study_images(case_id: str, account: dict = Depends(insurer_or_admin)):
+    # The insurer sees only approved cases; the main admin sees every case.
+    return insurance.study_images(case_id, any_stage=account['role'] == 'ADMIN')

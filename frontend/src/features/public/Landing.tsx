@@ -1,4 +1,4 @@
-import { apiMode } from '../../api/client';
+import { apiMode, showDemoAccounts } from '../../api/client';
 import { Icon, type IconName } from '../../components/AppShell';
 import { BrandMark, buttonClass, Notice } from '../../components/ui';
 import { Link } from '../../lib/router';
@@ -35,6 +35,7 @@ export function Landing() {
           ))}
         </div>
         {apiMode === 'mock' ? <Notice tone="warn">این نسخه هنوز به سرور وصل نیست و داده‌های نمونه را در همین مرورگر نگه می‌دارد.</Notice> : null}
+        {apiMode === 'http' && showDemoAccounts ? <Notice tone="warn">نسخه آزمایشی: همه پنل‌ها به سرور وصل‌اند و داده‌ها نمونه‌اند. حساب آزمایشی هر پنل در صفحه ورود آن نوشته شده است.</Notice> : null}
         {apiMode === 'hybrid' ? <Notice tone="warn">پنل بیمار، پنل بیمه و پنل مدیر PACS به سرور وصل‌اند. پنل مدیریت کل هنوز داده‌های نمونه را نشان می‌دهد.</Notice> : null}
       </div>
     </main>

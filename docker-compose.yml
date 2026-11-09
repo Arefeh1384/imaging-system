@@ -18,6 +18,8 @@ services:
       INSURANCE_PASSWORD: ${INSURANCE_PASSWORD:-dana1234}
       PACS_ADMIN_USERNAME: ${PACS_ADMIN_USERNAME:-pacs-admin}
       PACS_ADMIN_PASSWORD: ${PACS_ADMIN_PASSWORD:-pacs1234}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin1234}
       SMS_GATEWAY_URL: http://sandbox:8001/sms/api/send
       ERX_SERVICE_URL: http://sandbox:8001/erx/api/prescriptions
       PORTAL_URL: ${PORTAL_URL:-http://localhost:8080}
@@ -66,8 +68,10 @@ services:
       context: ./frontend
       args:
         NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org/}
-        VITE_API_MODE: hybrid
+        VITE_API_MODE: http
         VITE_API_BASE_URL: /api/v1
+        # Test server: show the test accounts on the sign-in pages. Set to "false" for a real server.
+        VITE_DEMO_ACCOUNTS: "true"
     depends_on:
       backend:
         condition: service_healthy

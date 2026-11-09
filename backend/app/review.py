@@ -151,7 +151,7 @@ def _run(case_id: str) -> str:
     now = db.now_iso()
     opinion = result.opinion(now)
     db.update('cases', {'id': case_id}, {'ai_opinion': opinion, 'reviewed_at': now})
-    db.log_event(case_id, 'AI', f"{result.model_version}: {opinion['summary']}")
+    db.log_event(case_id, 'AI' if result.by_ai else 'SYSTEM', f"{result.model_version}: {opinion['summary']}")
     kind = result.conflict_kind
     if kind:
         reject_for_conflict(c, kind, CONFLICT_REASONS[kind], 'AI')

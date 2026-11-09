@@ -130,10 +130,12 @@ The screen uses these values from the response, and the sample backend sets them
 `VITE_API_MODE` picks where the screens get their data:
 
 - `mock`: everything on sample data in the browser. No backend needed.
-- `hybrid`: the patient panel calls the backend in `../backend`; the admin and insurance panels stay on sample data. Docker builds this mode.
-- `http`: everything calls the backend at `VITE_API_BASE_URL`.
+- `hybrid`: the patient, insurance and PACS admin panels call the backend; the main admin panel stays on sample data. Kept for working on the admin screens without the backend.
+- `http`: everything calls the backend at `VITE_API_BASE_URL`. Docker builds this mode.
 
-With `npm run dev`, set `VITE_API_MODE=hybrid` and `VITE_API_BASE_URL=/api/v1` in `.env`. Vite passes `/api` to the backend on port 8000 (`vite.config.ts`).
+`VITE_DEMO_ACCOUNTS=true` shows the test accounts on the sign-in pages of a test server. Leave it unset on a real server.
+
+With `npm run dev`, set `VITE_API_MODE=http` and `VITE_API_BASE_URL=/api/v1` in `.env` (and `VITE_DEMO_ACCOUNTS=true` if you want the test accounts shown). Vite passes `/api` to the backend on port 8000 (`vite.config.ts`).
 
 Screens only talk to the `ApiClient` interface in `src/api/types.ts`, and `src/api/client.ts` picks the implementation. Sample-only controls (the PACS simulator, the sample hints) disappear where the data is real. The one-time code is shown on the page whenever the backend returns `sampleCode`, which it only does in demo mode.
 

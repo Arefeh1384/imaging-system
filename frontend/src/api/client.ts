@@ -15,6 +15,9 @@ export const apiMode: 'mock' | 'http' | 'hybrid' =
 /** True where sample data is shown: everywhere in mock mode, and the main admin panel in hybrid mode. */
 export const isMockMode = apiMode !== 'http';
 
+/** Shows the test accounts on the sign-in pages: always on sample data, and on a test server built with VITE_DEMO_ACCOUNTS=true. */
+export const showDemoAccounts = isMockMode || import.meta.env.VITE_DEMO_ACCOUNTS === 'true';
+
 /** True only when the patient panel itself runs on sample data. */
 export const isPatientMock = apiMode === 'mock';
 
@@ -24,8 +27,9 @@ export const isPacsAdminMock = apiMode === 'mock';
 /** True only when the insurance panel runs on sample data. */
 export const isInsuranceMock = apiMode === 'mock';
 
-/** Whether the insurance panel is showing sample data right now: in mock mode, or when the main admin views it as a staff member. */
-export const insuranceShowsSample = () => isInsuranceMock || !!getStaffSession()?.viewAs;
+/** Whether the insurance panel is showing sample data right now: in mock mode, or in hybrid mode when the
+ * sample main admin opened it with "view as". With the real backend, "view as" shows real data. */
+export const insuranceShowsSample = () => isInsuranceMock || (apiMode === 'hybrid' && !!getStaffSession()?.viewAs);
 
 const PATIENT_METHODS = [
   'getInvite',

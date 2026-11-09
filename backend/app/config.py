@@ -49,6 +49,10 @@ class Settings:
     pacs_admin_username: str = field(default_factory=lambda: os.environ.get('PACS_ADMIN_USERNAME', 'pacs-admin').strip())
     pacs_admin_password: str = field(default_factory=lambda: os.environ.get('PACS_ADMIN_PASSWORD', 'pacs1234'))
     pacs_admin_name: str = field(default_factory=lambda: os.environ.get('PACS_ADMIN_NAME', 'مدیر PACS').strip())
+    # The main admin's first account: every company, hospital, ZIP, case, fee and account.
+    admin_username: str = field(default_factory=lambda: os.environ.get('ADMIN_USERNAME', 'admin').strip())
+    admin_password: str = field(default_factory=lambda: os.environ.get('ADMIN_PASSWORD', 'admin1234'))
+    admin_name: str = field(default_factory=lambda: os.environ.get('ADMIN_NAME', 'مدیر کل').strip())
     max_zip_mb: int = field(default_factory=lambda: int(os.environ.get('MAX_ZIP_MB', '300')))
     cors_origins: list[str] = field(default_factory=lambda: _list('CORS_ORIGINS', 'http://localhost:5173,http://localhost:8080'))
     worker_interval_seconds: float = field(default_factory=lambda: float(os.environ.get('WORKER_INTERVAL_SECONDS', '5')))
