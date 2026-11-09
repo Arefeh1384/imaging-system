@@ -65,15 +65,20 @@ def retry_later(case_id: str, why: str) -> None:
     log.warning('case %s: %s', case_id, why)
 
 
-def _first_png(case_id: str) -> bytes:
-    image = db.one('SELECT * FROM images WHERE case_id = ? ORDER BY label LIMIT 1', (case_id,))
+def png_of(image: dict) -> tuple[bytes, int, int]:
+    """The viewable PNG of one DICOM image, made once and kept next to it."""
     if image['png_path'] and files.abs_path(image['png_path']).exists():
-        return files.abs_path(image['png_path']).read_bytes()
+        return files.abs_path(image['png_path']).read_bytes(), image['width'], image['height']
     png, width, height = dicomio.to_png(files.abs_path(image['path']))
-    out = files.case_dir(case_id) / f"{image['id']}.png"
+    out = files.case_dir(image['case_id']) / f"{image['id']}.png"
     out.write_bytes(png)
     db.update('images', {'id': image['id']}, {'png_path': files.rel(out), 'width': width, 'height': height})
-    return png
+    return png, width, height
+
+
+def _first_png(case_id: str) -> bytes:
+    image = db.one('SELECT * FROM images WHERE case_id = ? ORDER BY label LIMIT 1', (case_id,))
+    return png_of(image)[0]
 
 
 def _file(doc: dict) -> tuple[bytes | None, str | None]:

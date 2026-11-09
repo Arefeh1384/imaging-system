@@ -208,6 +208,50 @@ def main() -> int:
     ok('events show the e-prescription was fetched', any('نسخه الکترونیک از سامانه نسخه دریافت شد' in e['title'] for e in events['events']))
     ok('SMS history keeps no login codes', not any('کد ورود شما' in m['text'] for m in events['sms']))
 
+    # ---- the insurance panel sees only the approved cases
+    s, err = call('POST', '/insurance/login', {'username': 'dana-admin', 'password': 'wrong'})
+    ok('insurer: wrong password refused', err.get('code') == 'INVALID_LOGIN', err)
+    s, err = call('GET', '/insurance/cases', token=sara_token)
+    ok("insurer: a patient's session can't open the insurance panel", s == 401, s)
+    s, ins = call('POST', '/insurance/login', {'username': 'dana-admin', 'password': 'dana1234'})
+    ok('insurer: signs in', s == 200 and ins.get('role') == 'INSURANCE_ADMIN' and ins.get('token'), ins)
+    it = ins['token']
+    s, page = call('GET', '/insurance/cases?page=1&pageSize=5', token=it)
+    approved = [cid for cid, (stage, _) in EXPECT.items() if stage == 'AT_INSURER']
+    ok(f'insurer: list holds the {len(approved)} approved cases', page['total'] == len(approved) and len(page['items']) == 5 and page['page'] == 1, page.get('total'))
+    s, page2 = call('GET', '/insurance/cases?page=2&pageSize=5', token=it)
+    ok('insurer: second page has the rest', len(page2['items']) == len(approved) - 5, len(page2['items']))
+    s, far = call('GET', '/insurance/cases?page=9&pageSize=5', token=it)
+    ok('insurer: a page past the end returns the last page', far['page'] == 2, far.get('page'))
+    names = {r['patientName'] for r in page['items'] + page2['items']}
+    ok('insurer: no rejected or waiting case in the list', not names & {cases[c]['patient']['name'] for c in ('MG-006', 'MG-007', 'MG-009', 'MG-010', 'MG-012')}, names)
+    ok('insurer: every row shows the share', all(r['insurerShareRial'] == 6_000_000 for r in page['items']), page['items'][0])
+    h1 = cases['MG-001']['hospital']['id']
+    s, only = call('GET', f'/insurance/cases?hospitalId={h1}&pageSize=50', token=it)
+    ok('insurer: filter by center', only['total'] > 0 and all(r['hospitalId'] == h1 for r in only['items']), only.get('total'))
+    sara_case = by_acc[cases['MG-001']['study']['accessionNumber']]['id']
+    s, rec = call('GET', f'/insurance/cases/{sara_case}', token=it)
+    ok('insurer: case opens with patient, insurance and share', s == 200 and rec['patient']['insurance']['policyNumber'] == 'DN-123' and rec['insuranceShare']['insurerShareRial'] == 6_000_000, rec.get('patient'))
+    ok('insurer: prescription picture and report text', rec['documents']['prescription'].get('previewDataUrl', '').startswith('data:image/jpeg') and 'ماموگرافی' in rec['documents']['report'].get('reportText', ''), list(rec['documents']))
+    ok('insurer: AI opinion and tracking number', rec['aiOpinion']['result'] == 'OK' and rec.get('trackingNumber'), rec.get('aiOpinion'))
+    erx_case = by_acc[cases['MG-003']['study']['accessionNumber']]['id']
+    s, rec3 = call('GET', f'/insurance/cases/{erx_case}', token=it)
+    ok('insurer: e-prescription code shown', rec3['documents']['prescription'].get('eRxId') == erx_by_case['MG-003'], rec3['documents'].get('prescription'))
+    paper_case = by_acc[cases['MG-004']['study']['accessionNumber']]['id']
+    s, rec4 = call('GET', f'/insurance/cases/{paper_case}', token=it)
+    ok("insurer: patient's prescription photo shown", rec4['documents']['prescription']['source'] == 'PATIENT' and rec4['documents']['prescription'].get('previewDataUrl'), rec4['documents'].get('prescription', {}).get('source'))
+    s, imgs = call('GET', f'/imaging/cases/{sara_case}/images', token=it)
+    ok('insurer: DICOM picture as PNG', s == 200 and len(imgs) == 1 and imgs[0]['url'].startswith('data:image/png;base64,') and imgs[0]['width'] > 0, s)
+    rejected = by_acc[cases['MG-006']['study']['accessionNumber']]['id']
+    s, err = call('GET', f'/insurance/cases/{rejected}', token=it)
+    ok('insurer: a rejected case stays closed', s == 404 and err.get('message') == 'این پرونده در پنل بیمه نیست.', (s, err))
+    s, err = call('GET', f'/imaging/cases/{rejected}/images', token=it)
+    ok("insurer: a rejected case's pictures stay closed", s == 404, s)
+    s, dash = call('GET', '/insurance/dashboard', token=it)
+    ok('insurer: dashboard counts', dash['cases']['atInsurer'] == len(approved) and dash['cases']['conflict'] == 6 and dash['totals']['accepted'] == 14 and dash['totals']['notBillable'] == 2, dash.get('cases'))
+    ok('insurer: dashboard share and conflict causes', dash['insurerShareRial'] == len(approved) * 6_000_000 and dash['conflicts']['PRESCRIPTION_NAME'] == 2 and dash['conflicts']['PATIENT_DENIED'] == 1, dash.get('conflicts'))
+    ok('insurer: one row per center', len(dash['hospitals']) == 3 and sum(h['cases']['atInsurer'] for h in dash['hospitals']) == len(approved), len(dash['hospitals']))
+
     print('all passed' if not fails else f'FAILED {fails}')
     return 1 if fails else 0
 

@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { api, isMockMode } from '../../api/client';
+import { api, insuranceShowsSample, isMockMode } from '../../api/client';
 import type { StaffRole } from '../../api/types';
 import { AppShell, type NavItem } from '../../components/AppShell';
 import { AuthLayout, Button, Field, Notice, ViewAsBanner, PasswordInput } from '../../components/ui';
@@ -45,7 +45,7 @@ export function InsuranceLogin() {
         {error ? <Notice tone="bad">{error}</Notice> : null}
         {isMockMode ? (
           <div className="text-caption text-muted">
-            در حالت نمونه: <bdi dir="ltr">dana-admin / dana1234</bdi>
+            حساب آزمایشی: <bdi dir="ltr">dana-admin / dana1234</bdi>
           </div>
         ) : null}
         <Button type="submit" busy={busy} disabled={!username || !password}>
@@ -77,6 +77,7 @@ export function InsuranceLayout({ role, nav, children }: { role: StaffRole; nav:
         navigate('/insurance/login', { replace: true });
       }}
       banner={session.viewAs ? <ViewAsBanner name={session.name} onExit={clearStaffSession} /> : null}
+      sample={insuranceShowsSample()}
     >
       <div className="flex flex-col gap-4">{children}</div>
     </AppShell>

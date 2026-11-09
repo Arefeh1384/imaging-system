@@ -1,6 +1,6 @@
 // Documents shown open on the page, so the insurer reads them without clicking anything.
 import { useState } from 'react';
-import { isMockMode } from '../api/client';
+import { insuranceShowsSample } from '../api/client';
 import type { CaseRecord, DocKey, UploadDocKey } from '../api/types';
 import { formatDate, toFaDigits } from '../lib/format';
 import { DOC_LABELS } from '../lib/labels';
@@ -58,7 +58,7 @@ function FileBody({ record, docKey, onZoom }: { record: CaseRecord; docKey: Uplo
       </article>
     );
   }
-  if (isMockMode) return <SamplePaper record={record} docKey={docKey} />;
+  if (insuranceShowsSample()) return <SamplePaper record={record} docKey={docKey} />;
   return <p className="text-muted text-small px-2 py-7 text-center">{file.fileName}</p>;
 }
 
@@ -88,7 +88,7 @@ function ERxBody({ record, eRxId }: { record: CaseRecord; eRxId: string }) {
       ) : (
         <p className="text-small">بیمار شناسه را ثبت کرده است. نسخه هنگام بررسی پرونده از سامانه نسخه الکترونیک دریافت می‌شود.</p>
       )}
-      {isMockMode ? <span className="absolute start-3 bottom-2 text-[0.72rem] text-[#5a6a70]">نمونه</span> : null}
+      {insuranceShowsSample() ? <span className="absolute start-3 bottom-2 text-[0.72rem] text-[#5a6a70]">نمونه</span> : null}
     </article>
   );
 }

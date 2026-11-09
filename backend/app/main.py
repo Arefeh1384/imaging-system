@@ -10,11 +10,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from . import db, review
+from . import db, review, staff
 from .checker import get_checker
 from .config import settings
 from .errors import ApiError
-from .routes import dev, ingest, portal
+from .routes import dev, ingest, insurance, portal
 from .worker import Worker
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s: %(message)s')
@@ -24,6 +24,7 @@ log = logging.getLogger('app')
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     db.init()
+    staff.ensure_default_account()
     stuck = review.requeue_stuck()
     if stuck:
         log.info('%s case(s) waiting for the check were put back in the queue', stuck)
@@ -35,7 +36,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title='سامانه تصویربرداری و بیمه', version='0.1.0', lifespan=lifespan,
-              description='Backend for the patient panel: PACS intake, patient sign-in, confirmation and the check that follows.')
+              description='Backend for the patient and insurance panels: PACS intake, patient sign-in and confirmation, the check that follows, and the insurer\'s view of approved cases.')
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=['*'], allow_headers=['*'])
 
 
@@ -57,4 +58,5 @@ def health():
 
 app.include_router(ingest.router)
 app.include_router(portal.router)
+app.include_router(insurance.router)
 app.include_router(dev.router)

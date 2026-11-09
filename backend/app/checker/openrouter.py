@@ -52,7 +52,7 @@ def model_list() -> list[str]:
 
 
 def model_fields() -> dict:
-    models = model_list()
+    models = model_list()[:3]  # OpenRouter accepts at most 3 models in one request
     return {'models': models} if len(models) > 1 else {'model': models[0] if models else ''}
 
 

@@ -62,6 +62,7 @@ export const CONFLICT_REASONS: Record<Exclude<ConflictKind, 'PATIENT_DENIED'>, s
   PRESCRIPTION_STUDY: 'خدمت نوشته‌شده در نسخه با تصویربرداری انجام‌شده یکسان نیست.',
   PRESCRIPTION_NAME: 'نام روی نسخه با نام بیمار یکسان نیست.',
   REPORT_IMAGES: 'گزارش رادیولوژیست به این تصویربرداری مربوط نیست.',
+  IMAGE_PATIENT: 'تصویر پزشکی به نام بیمار دیگری است.',
 };
 
 export const deniedReason = (key: ConfirmKey) => (key === 'service' ? 'بیمار گفت این خدمت را دریافت نکرده است.' : 'بیمار گفت نسخه مال او نیست.');

@@ -34,7 +34,7 @@ export function Landing() {
           ))}
         </div>
         {apiMode === 'mock' ? <Notice tone="warn">این نسخه هنوز به سرور وصل نیست و داده‌های نمونه را در همین مرورگر نگه می‌دارد.</Notice> : null}
-        {apiMode === 'hybrid' ? <Notice tone="warn">پنل بیمار به سرور وصل است. پنل مدیر و پنل بیمه هنوز داده‌های نمونه را نشان می‌دهند.</Notice> : null}
+        {apiMode === 'hybrid' ? <Notice tone="warn">پنل بیمار و پنل بیمه به سرور وصل‌اند. پنل مدیر هنوز داده‌های نمونه را نشان می‌دهد.</Notice> : null}
       </div>
     </main>
   );

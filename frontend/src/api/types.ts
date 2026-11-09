@@ -33,7 +33,7 @@ export type CaseStage =
 export type StaffRole = 'INSURANCE_ADMIN';
 
 /** Why a case was rejected for a conflict. */
-export type ConflictKind = 'PRESCRIPTION_STUDY' | 'PRESCRIPTION_NAME' | 'REPORT_IMAGES' | 'PATIENT_DENIED';
+export type ConflictKind = 'PRESCRIPTION_STUDY' | 'PRESCRIPTION_NAME' | 'REPORT_IMAGES' | 'PATIENT_DENIED' | 'IMAGE_PATIENT';
 
 export interface FeeSplit {
   hospitalRial: Rial;

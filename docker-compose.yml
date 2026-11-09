@@ -14,6 +14,8 @@ services:
       DEMO_MODE: "true"
       SECRET_KEY: ${SECRET_KEY:-local-only-secret-change-me}
       PACS_API_KEY: ${PACS_API_KEY:-dev-pacs-key}
+      INSURANCE_USERNAME: ${INSURANCE_USERNAME:-dana-admin}
+      INSURANCE_PASSWORD: ${INSURANCE_PASSWORD:-dana1234}
       SMS_GATEWAY_URL: http://sandbox:8001/sms/api/send
       ERX_SERVICE_URL: http://sandbox:8001/erx/api/prescriptions
       PORTAL_URL: ${PORTAL_URL:-http://localhost:8080}

@@ -33,7 +33,8 @@ const statusSlices = (c: CaseCounts): PieSlice[] => [
 const conflictSlices = (r: ConflictCounts): PieSlice[] => [
   { label: CONFLICT_LABELS.PRESCRIPTION_STUDY, value: r.PRESCRIPTION_STUDY, slot: 1 },
   { label: CONFLICT_LABELS.PRESCRIPTION_NAME, value: r.PRESCRIPTION_NAME, slot: 2 },
-  { label: CONFLICT_LABELS.REPORT_IMAGES, value: r.REPORT_IMAGES, slot: 3 },
+  // The chart has four colours, so the two "documents don't match the picture" causes share one slice.
+  { label: 'گزارش یا تصویر با پرونده نمی‌خواند', value: r.REPORT_IMAGES + r.IMAGE_PATIENT, slot: 3 },
   { label: CONFLICT_LABELS.PATIENT_DENIED, value: r.PATIENT_DENIED, slot: 4 },
 ];
 

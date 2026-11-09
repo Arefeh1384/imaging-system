@@ -274,7 +274,7 @@ function countCases(cases: MockCase[]): CaseCounts {
 }
 
 function countConflicts(cases: MockCase[]): ConflictCounts {
-  const counts: ConflictCounts = { PRESCRIPTION_STUDY: 0, PRESCRIPTION_NAME: 0, REPORT_IMAGES: 0, PATIENT_DENIED: 0 };
+  const counts: ConflictCounts = { PRESCRIPTION_STUDY: 0, PRESCRIPTION_NAME: 0, REPORT_IMAGES: 0, PATIENT_DENIED: 0, IMAGE_PATIENT: 0 };
   cases.forEach((c) => {
     if (c.conflict) counts[c.conflict.kind] += 1;
   });

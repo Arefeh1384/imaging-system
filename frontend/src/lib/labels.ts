@@ -22,6 +22,7 @@ export const CONFLICT_LABELS: Record<ConflictKind, string> = {
   PRESCRIPTION_NAME: 'نام روی نسخه',
   REPORT_IMAGES: 'گزارش با تصویر نمی‌خواند',
   PATIENT_DENIED: 'بیمار خدمت یا نسخه را رد کرد',
+  IMAGE_PATIENT: 'تصویر به نام بیمار دیگری است',
 };
 
 export function stageLabel(stage: CaseStage): StatusLabel {

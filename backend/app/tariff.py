@@ -17,6 +17,10 @@ TARIFF = {
 OTHER = ('سایر تصویربرداری‌ها', 500_000 * TOMAN)
 
 
+# The fee for each accepted ZIP and how it is split, in rials. Illustrative, the same as the frontend's sample data.
+FEE_RULE = {'feeRial': 100_000, 'hospitalRial': 30_000, 'insuranceRial': 30_000, 'managementRial': 40_000}
+
+
 def share_for(modality: str) -> dict:
     title, rial = TARIFF.get((modality or '').upper(), OTHER)
     return {'tariffTitle': title, 'insurerShareRial': rial, 'tariffVersion': VERSION, 'createdAt': db.now_iso()}

@@ -1,6 +1,6 @@
-# Imaging and insurance system: patient path
+# Imaging and insurance system
 
-The frontend plus the first backend: a hospital PACS sends a ZIP, the patient gets an SMS, signs in, confirms the service and the prescription, and presses «تأیید». Later the system fetches the e-prescription, checks the prescription, report and image against each other, and either sends the case to the insurer with its share or rejects it. The patient is told by SMS either way.
+The frontend plus the backend for the patient and insurance panels: a hospital PACS sends a ZIP, the patient gets an SMS, signs in, confirms the service and the prescription, and presses «تأیید». Later the system fetches the e-prescription, checks the prescription, report and image against each other, and either sends the case to the insurer with its share or rejects it. The patient is told by SMS either way.
 
 The PACS, the SMS gateway and the e-prescription service are stand-ins in the **sandbox**, so the whole path runs on one computer with invented data.
 
@@ -10,8 +10,8 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
 
 | Folder | What it is | Port |
 | --- | --- | --- |
-| `frontend/` | React app (the same one as before). Built with `VITE_API_MODE=hybrid`: the patient panel calls the backend, the admin and insurance panels stay on sample data. | 8080 |
-| `backend/` | FastAPI + SQLite. PACS intake, patient sign-in, the patient's case actions, and the background check. API docs at `/docs`. | 8000 |
+| `frontend/` | React app (the same one as before). Built with `VITE_API_MODE=hybrid`: the patient and insurance panels call the backend, the main admin panel stays on sample data. | 8080 |
+| `backend/` | FastAPI + SQLite. PACS intake, patient sign-in, the patient's case actions, the background check, and the insurance panel. API docs at `/docs`. | 8000 |
 | `sandbox/` | Sample PACS with an «ارسال» button per study, SMS inbox, e-prescription service. | 8001 |
 | `datasets/` | 15 invented mammography cases: DICOM, details, reports, prescriptions, e-prescriptions, photos for the patient to upload. | |
 | `docs/` | The Docker guide. | |
@@ -27,7 +27,7 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
    - Fetches the e-prescription by its code. If no prescription has that code, the case goes back to the patient with an SMS to enter it again; this is treated as a typing mistake, not a conflict.
    - Makes a PNG from the DICOM.
    - Asks the checker four questions: does the prescription's service match the imaging, is the prescription for this patient, is the report about this imaging, does the DICOM belong to this patient?
-   - All pass: `AT_INSURER`, the share from the price list (mammography 600,000 Toman), SMS "پرونده شما کامل است و برای بیمه ارسال شد".
+   - All pass: `AT_INSURER`, the share from the price list (mammography 600,000 Toman), SMS "پرونده شما کامل است و برای بیمه ارسال شد". The case appears in the insurance panel's case list with the prescription, the report, the DICOM picture, the AI's findings and the share.
    - A conflict: `REJECTED_CONFLICT` with the reason, SMS to call the center.
    - Checker unreachable: tried again in 5 minutes.
 
@@ -52,6 +52,11 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
 | `POST /api/v1/portal/cases/{id}/confirm/{key}` | `{yes}` for `service` or `prescription`. |
 | `POST /api/v1/portal/cases/{id}/e-prescription` | `{eRxId}` |
 | `POST /api/v1/portal/cases/{id}/submit` | The «تأیید» button. |
+| `POST /api/v1/insurance/login` | Insurance panel sign-in (`INSURANCE_USERNAME`, `INSURANCE_PASSWORD`; passwords stored hashed). |
+| `GET /api/v1/insurance/dashboard` | Counts, shares and fees, overall and per center. |
+| `GET /api/v1/insurance/cases` | Approved cases only, newest first. `hospitalId`, `page`, `pageSize`. |
+| `GET /api/v1/insurance/cases/{id}` | One approved case: patient, documents, AI opinion, share. Rejected or waiting cases answer 404. |
+| `GET /api/v1/imaging/cases/{id}/images` | The DICOM pictures of an approved case, as PNG. |
 | `/api/v1/dev/...` | Demo tools (list cases, events, check now, reset). Only with `DEMO_MODE=true`. |
 
 Errors come back as `{"code": "...", "message": "..."}` with a Persian message, which the frontend shows as is.
@@ -62,7 +67,7 @@ Errors come back as `{"code": "...", "message": "..."}` with a Persian message, 
 
 ## Not real yet
 
-- The admin and insurance panels still run on sample data in the browser. Their endpoints are the next step.
+- The main admin panel still runs on sample data in the browser. Its endpoints are the next step.
 - SMS and the e-prescription service are stand-ins. Real ones mean changing `SMS_GATEWAY_URL`, `ERX_SERVICE_URL` and the request shapes in `backend/app/gateways.py`.
 - Demo mode returns the one-time code to the page and opens `/api/v1/dev`. Set `DEMO_MODE=false` anywhere other than your own computer.
 - SQLite fits a single server and testing. For production, PostgreSQL is the usual move; `backend/app/db.py` is the only file that talks to the database.

@@ -41,6 +41,10 @@ class Settings:
     gemini_api_key: str = field(default_factory=lambda: os.environ.get('GEMINI_API_KEY', '').strip())
     gemini_model: str = field(default_factory=lambda: os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash').strip())
     gemini_base_url: str = field(default_factory=lambda: os.environ.get('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta').rstrip('/'))
+    # The insurance panel's first account, made at start-up if it doesn't exist yet. Change the password in .env.
+    insurance_username: str = field(default_factory=lambda: os.environ.get('INSURANCE_USERNAME', 'dana-admin').strip())
+    insurance_password: str = field(default_factory=lambda: os.environ.get('INSURANCE_PASSWORD', 'dana1234'))
+    insurance_name: str = field(default_factory=lambda: os.environ.get('INSURANCE_NAME', 'کارشناس بیمه دانا').strip())
     max_zip_mb: int = field(default_factory=lambda: int(os.environ.get('MAX_ZIP_MB', '300')))
     cors_origins: list[str] = field(default_factory=lambda: _list('CORS_ORIGINS', 'http://localhost:5173,http://localhost:8080'))
     worker_interval_seconds: float = field(default_factory=lambda: float(os.environ.get('WORKER_INTERVAL_SECONDS', '5')))

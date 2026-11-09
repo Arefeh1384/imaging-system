@@ -118,6 +118,21 @@ CREATE TABLE IF NOT EXISTS otp (
   attempts INTEGER NOT NULL DEFAULT 0,
   used INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS staff (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS staff_sessions (
+  token_hash TEXT PRIMARY KEY,
+  staff_id TEXT NOT NULL,
+  created_at REAL NOT NULL,
+  expires_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS sessions (
   token_hash TEXT PRIMARY KEY,
   patient_id TEXT NOT NULL,
@@ -213,5 +228,6 @@ def log_event(case_id: str, actor: str, title: str) -> None:
 def wipe() -> None:
     """Deletes every row. Only reachable from the demo tools."""
     with connect() as con:
+        # Staff accounts and their sessions stay, so the insurance panel keeps working after a demo reset.
         for table in ('hospitals', 'patients', 'zips', 'cases', 'documents', 'images', 'sms', 'events', 'otp', 'sessions'):
             con.execute(f'DELETE FROM {table}')
