@@ -191,10 +191,10 @@ def parse_response(body: dict) -> CheckResult:
     except (KeyError, IndexError, TypeError, ValueError) as err:
         raise CheckerUnavailable(f'The model answered in an unexpected shape: {str(body)[:300]}') from err
     by_check = {f['check']: f for f in data.get('findings', []) if isinstance(f, dict) and f.get('check') in CHECKS}
-    findings = [by_check.get(k, {'check': k, 'passed': True, 'detail': 'این مورد در پاسخ هوش مصنوعی نبود.'}) for k in CHECKS]
+    findings = [by_check.get(k, {'check': k, 'passed': True, 'detail': 'هوش مصنوعی درباره این مورد چیزی ننوشت.'}) for k in CHECKS]
     model = body.get('model') or settings.openrouter_model
     return CheckResult(findings=[{'check': f['check'], 'passed': bool(f['passed']), 'detail': str(f.get('detail', ''))} for f in findings],
-                       summary=str(data.get('summary', '')), model_version=f'OpenRouter ({model})')
+                       summary=str(data.get('summary', '')), model_version=f'OpenRouter ({model})', by_ai=True, raw_answer=content.strip())
 
 
 class OpenRouterChecker:

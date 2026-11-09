@@ -94,9 +94,9 @@ def parse_response(body: dict) -> CheckResult:
     except (KeyError, IndexError, ValueError) as err:
         raise CheckerUnavailable(f'Gemini answered in an unexpected shape: {str(body)[:300]}') from err
     by_check = {f['check']: f for f in data.get('findings', []) if f.get('check') in CHECKS}
-    findings = [by_check.get(k, {'check': k, 'passed': True, 'detail': 'این مورد در پاسخ هوش مصنوعی نبود.'}) for k in CHECKS]
+    findings = [by_check.get(k, {'check': k, 'passed': True, 'detail': 'هوش مصنوعی درباره این مورد چیزی ننوشت.'}) for k in CHECKS]
     return CheckResult(findings=[{'check': f['check'], 'passed': bool(f['passed']), 'detail': str(f.get('detail', ''))} for f in findings],
-                       summary=str(data.get('summary', '')), model_version=f'Gemini ({settings.gemini_model})')
+                       summary=str(data.get('summary', '')), model_version=f'Gemini ({settings.gemini_model})', by_ai=True, raw_answer=text.strip())
 
 
 def call_gemini(body: dict, timeout: float = 90) -> dict:

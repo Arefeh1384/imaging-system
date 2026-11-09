@@ -65,27 +65,77 @@ export function CaseDocuments({ record, keys }: { record: CaseRecord; keys: DocK
   );
 }
 
-export function AiOpinionCard({ opinion }: { opinion?: AiOpinion }) {
-  if (!opinion) return <p className="text-muted text-small">هوش مصنوعی هنوز این پرونده را بررسی نکرده است. بررسی بعد از ارسال بیمار انجام می‌شود.</p>;
-  const conflict = opinion.result === 'CONFLICT';
+/** The model's full reply, laid out for reading: JSON is indented, plain text is shown as it came. */
+function readable(raw: string): { text: string; json: boolean } {
+  try {
+    return { text: JSON.stringify(JSON.parse(raw), null, 2), json: true };
+  } catch {
+    return { text: raw, json: false };
+  }
+}
+
+/** Indented JSON with each text value isolated, so Persian sentences keep their own direction inside the left-to-right layout. */
+function JsonLines({ text }: { text: string }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className={`${noticeClass(conflict ? 'bad' : 'ok')} flex flex-wrap items-center gap-2`}>
-        <AiTag />
-        {opinion.summary}
-      </div>
+    <>
+      {text.split('\n').map((line, i) => {
+        const m = /^(\s*(?:"[^"]*":\s*)?)"(.*)"(,?)$/.exec(line);
+        return (
+          <span key={i} className="block">
+            {m ? (
+              <>
+                {m[1]}"<bdi>{m[2]}</bdi>"{m[3]}
+              </>
+            ) : (
+              line
+            )}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+/** What the checker said, in its own words: its summary, its explanation for each check, and its full reply. */
+export function AiOpinionCard({ opinion }: { opinion?: AiOpinion }) {
+  if (!opinion) return <p className="text-muted text-small">هوش مصنوعی هنوز این پرونده را بررسی نکرده است. بررسی بعد از تأیید بیمار انجام می‌شود.</p>;
+  const conflict = opinion.result === 'CONFLICT';
+  const byAi = opinion.byAi !== false;
+  const raw = opinion.rawAnswer ? readable(opinion.rawAnswer) : null;
+  return (
+    <div className="ai-opinion flex flex-col gap-2.5">
+      <p className="text-small text-muted">
+        {byAi ? 'پاسخ ' : ''}
+        <bdi dir="ltr">{opinion.modelVersion}</bdi>، {formatDateTime(opinion.createdAt)}
+      </p>
+      <blockquote className={`${noticeClass(conflict ? 'bad' : 'ok')} ai-summary m-0 flex flex-col gap-1`}>
+        {byAi ? (
+          <span className="flex items-center gap-1.5 text-small font-semibold">
+            <AiTag />
+            خلاصه هوش مصنوعی
+          </span>
+        ) : null}
+        <span>{opinion.summary}</span>
+      </blockquote>
       <div className="overflow-hidden rounded-card border border-line">
         {opinion.findings.map((f) => (
           <div className={LIST_ROW} key={f.title}>
             <div className="list-main min-w-0 flex-[1_1_240px]">
               <div className="font-bold text-small">{f.title}</div>
-              <div className="text-small text-muted">{f.detail}</div>
+              <div className="ai-finding-detail text-small">{f.detail}</div>
             </div>
             <span className={chipClass(f.result === 'PASS' ? 'ok' : 'bad')}>{f.result === 'PASS' ? 'هم‌خوان' : 'مغایرت'}</span>
           </div>
         ))}
       </div>
-      <p className="text-small text-muted">{opinion.modelVersion}، {formatDateTime(opinion.createdAt)}</p>
+      {raw ? (
+        <details className="ai-raw rounded-card border border-line px-3.5 py-2.5 text-small">
+          <summary className="cursor-pointer font-semibold">متن کامل پاسخ مدل</summary>
+          <pre dir={raw.json ? 'ltr' : 'auto'} className={`mt-2 max-h-80 overflow-auto font-[inherit] leading-relaxed whitespace-pre-wrap wrap-anywhere ${raw.json ? 'text-left' : ''}`}>
+            {raw.json ? <JsonLines text={raw.text} /> : raw.text}
+          </pre>
+        </details>
+      ) : null}
     </div>
   );
 }

@@ -114,7 +114,10 @@ def main() -> int:
 
     result = checker.check(item('MG-006', rx_service='سونوگرافی شکم و لگن'))
     ok('wrong service comes back as PRESCRIPTION_STUDY', result.conflict_kind == 'PRESCRIPTION_STUDY', result.findings)
-    ok("the summary is the model's Persian sentence", result.opinion('t')['summary'] == 'نسخه برای سونوگرافی است.')
+    op = result.opinion('t')
+    ok("the summary is the model's Persian sentence, word for word", op['summary'] == 'نسخه برای سونوگرافی است.')
+    ok("each check carries the model's own explanation", op['findings'][0]['detail'] == 'نوع تصویربرداری بررسی شد.' and op['findings'][0]['result'] == 'CONFLICT')
+    ok("the model's full answer is kept", '"summary"' in op.get('rawAnswer', '') and op.get('byAi') is True)
 
     checker.check(item('MG-001', pdf=True))
     files = [p for p in seen['body']['messages'][1]['content'] if p.get('type') == 'file']

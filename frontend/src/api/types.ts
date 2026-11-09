@@ -120,9 +120,15 @@ export interface AiFinding {
 /** The AI compares the prescription, the report, the images and the patient's details. */
 export interface AiOpinion {
   result: 'OK' | 'CONFLICT';
+  /** The model's own summary, word for word. */
   summary: string;
   findings: AiFinding[];
+  /** Which checker answered, such as "OpenRouter (google/gemma-4-31b-it:free)". */
   modelVersion: string;
+  /** False when the check ran without AI (the backend's test checker). Missing means AI. */
+  byAi?: boolean;
+  /** The model's reply exactly as it came. */
+  rawAnswer?: string;
   createdAt: string;
 }
 

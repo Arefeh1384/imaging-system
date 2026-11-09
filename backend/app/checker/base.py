@@ -5,10 +5,10 @@ from dataclasses import dataclass, field
 
 # The checks every checker runs, and what each one is called on screen.
 CHECKS = {
-    'PRESCRIPTION_STUDY': ('نسخه با تصویربرداری هم‌خوانی دارد', 'prescription'),
-    'PRESCRIPTION_NAME': ('نام روی نسخه درست است', 'prescription'),
-    'REPORT_IMAGES': ('گزارش با تصویر هم‌خوانی دارد', 'report'),
-    'IMAGE_PATIENT': ('تصویر مال همین بیمار است', 'images'),
+    'PRESCRIPTION_STUDY': ('آیا خدمت نسخه با تصویربرداری می‌خواند؟', 'prescription'),
+    'PRESCRIPTION_NAME': ('آیا نسخه به نام همین بیمار است؟', 'prescription'),
+    'REPORT_IMAGES': ('آیا گزارش درباره همین تصویربرداری است؟', 'report'),
+    'IMAGE_PATIENT': ('آیا تصویر مال همین بیمار است؟', 'images'),
 }
 CONFLICT_REASONS = {
     'PRESCRIPTION_STUDY': 'خدمت نوشته‌شده در نسخه با تصویربرداری انجام‌شده یکسان نیست.',
@@ -41,6 +41,8 @@ class CheckResult:
     findings: list[dict] = field(default_factory=list)  # {check, passed, detail}
     summary: str = ''
     model_version: str = ''
+    by_ai: bool = False  # False for the fake checker, which compares written details only
+    raw_answer: str = ''  # the model's reply exactly as it came, kept for the insurer to read
 
     @property
     def conflict_kind(self) -> str | None:
@@ -49,18 +51,26 @@ class CheckResult:
     def opinion(self, created_at: str) -> dict:
         """The AiOpinion shape the insurance panel and the main admin read."""
         conflict = self.conflict_kind
-        summary = self.summary or (CONFLICT_REASONS[conflict] if conflict else 'نسخه، گزارش و تصویر با هم و با مشخصات بیمار هم‌خوانی دارند.')
-        return {
+        if self.by_ai:
+            # The model's own summary, word for word.
+            summary = self.summary.strip() or 'هوش مصنوعی برای این بررسی خلاصه‌ای ننوشت.'
+        else:
+            summary = 'بررسی آزمایشی بدون هوش مصنوعی: ' + (CONFLICT_REASONS[conflict] if conflict else 'جزئیات نوشته‌شده نسخه، گزارش و فایل DICOM با هم و با مشخصات بیمار یکی است.')
+        out = {
             'result': 'CONFLICT' if conflict else 'OK',
             'summary': summary,
+            # The title names what was checked; the detail is the checker's own explanation.
             'findings': [
-                {'title': CHECKS[f['check']][0] if f['passed'] else CONFLICT_REASONS[f['check']], 'detail': f['detail'],
-                 'result': 'PASS' if f['passed'] else 'CONFLICT', 'target': CHECKS[f['check']][1]}
+                {'title': CHECKS[f['check']][0], 'detail': f['detail'], 'result': 'PASS' if f['passed'] else 'CONFLICT', 'target': CHECKS[f['check']][1]}
                 for f in self.findings
             ],
             'modelVersion': self.model_version,
+            'byAi': self.by_ai,
             'createdAt': created_at,
         }
+        if self.raw_answer:
+            out['rawAnswer'] = self.raw_answer[:8000]
+        return out
 
 
 class CheckerUnavailable(Exception):

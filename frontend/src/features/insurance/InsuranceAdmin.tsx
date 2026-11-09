@@ -263,7 +263,7 @@ export function InsuranceCasePage() {
                 </p>
               </div>
               <p className="ai-ok inline-flex flex-wrap items-center gap-1.5 rounded-control bg-ok-bg px-3 py-2 text-label font-semibold text-ok-ink" role="status">
-                <AiTag />
+                {record.aiOpinion?.byAi === false ? 'بررسی آزمایشی: ' : <AiTag />}
                 مغایرتی دیده نشد
               </p>
             </div>
@@ -303,11 +303,12 @@ export function InsuranceCasePage() {
                 </section>
               ) : null}
               <section className={`${CARD} flex flex-col gap-2`}>
-                <h2>بررسی هوش مصنوعی</h2>
+                <h2>{record.aiOpinion?.byAi === false ? 'بررسی آزمایشی (بدون هوش مصنوعی)' : 'نظر هوش مصنوعی'}</h2>
                 <AiOpinionCard opinion={record.aiOpinion} />
               </section>
               <p className="text-small text-muted">
-                بیمار نسخه، گزارش و تصویر رسیده از بیمارستان را تأیید کرده است. سهم بیمه <Money rial={record.insuranceShare?.insurerShareRial ?? 0} /> از تعرفه بیمه حساب شده است.
+                بیمار تأیید کرده است که این خدمت را دریافت کرده
+                {record.confirmedItems.includes('prescription') ? ' و نسخه رسیده از بیمارستان مال اوست' : ''}. سهم بیمه <Money rial={record.insuranceShare?.insurerShareRial ?? 0} /> از تعرفه بیمه حساب شده است.
               </p>
             </aside>
           </div>
