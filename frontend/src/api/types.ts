@@ -151,6 +151,37 @@ export interface CaseConflict {
 }
 
 /** One picture made from the DICOM study, as a PNG. */
+/** PACS admin panel: how much each medical center sent. Counts only, nothing about patients. */
+export type SendPeriod = 'today' | '7d' | '30d' | 'all';
+
+export interface CenterVolume {
+  id: string;
+  name: string;
+  /** ZIPs received from this center in the period, accepted or not. */
+  sent: number;
+  accepted: number;
+  rejected: number;
+  sizeBytes: number;
+  lastSentAt?: string;
+}
+
+export interface SendVolume {
+  period: SendPeriod;
+  /** First day of the period (Tehran time); null when nothing has been sent at all. */
+  from: string | null;
+  to: string;
+  total: { sent: number; accepted: number; rejected: number; sizeBytes: number };
+  /** Every known center, most sends first, including centers that sent nothing in the period. */
+  centers: CenterVolume[];
+  /** One entry per day of the period, oldest first. */
+  daily: Array<{ date: string; sent: number }>;
+}
+
+export interface PacsAdminSession {
+  token: string;
+  name: string;
+}
+
 export interface StudyImage {
   id: string;
   label: string;
@@ -471,6 +502,10 @@ export interface ApiClient {
 
   /** 4 or 5 PNG pictures made from the DICOM study. For the insurance panel and the main admin. */
   getStudyImages(caseId: string): Promise<StudyImage[]>;
+
+  // PACS admin panel
+  pacsAdminLogin(input: { username: string; password: string }): Promise<PacsAdminSession>;
+  getSendVolume(period: SendPeriod): Promise<SendVolume>;
 
   // Main admin panel
   adminLogin(input: { username: string; password: string }): Promise<AdminSession>;

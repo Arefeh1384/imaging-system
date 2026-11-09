@@ -6,7 +6,7 @@ import { mockApi, mockToolsImpl } from './mock';
 /**
  * mock: everything runs on sample data in this browser.
  * http: everything goes to the backend at VITE_API_BASE_URL.
- * hybrid: the patient and insurance panels go to the backend; the main admin panel stays on sample data,
+ * hybrid: the patient, insurance and PACS admin panels go to the backend; the main admin panel stays on sample data,
  * because the backend doesn't have the admin side yet.
  */
 export const apiMode: 'mock' | 'http' | 'hybrid' =
@@ -17,6 +17,9 @@ export const isMockMode = apiMode !== 'http';
 
 /** True only when the patient panel itself runs on sample data. */
 export const isPatientMock = apiMode === 'mock';
+
+/** True only when the PACS admin panel runs on sample data. */
+export const isPacsAdminMock = apiMode === 'mock';
 
 /** True only when the insurance panel runs on sample data. */
 export const isInsuranceMock = apiMode === 'mock';
@@ -38,6 +41,8 @@ const PATIENT_METHODS = [
   'submitCase',
 ] as const satisfies ReadonlyArray<keyof ApiClient>;
 
+const PACS_ADMIN_METHODS = ['pacsAdminLogin', 'getSendVolume'] as const satisfies ReadonlyArray<keyof ApiClient>;
+
 const INSURANCE_METHODS = ['insuranceLogin', 'getInsuranceDashboard', 'listInsuranceCases', 'getInsuranceCase'] as const satisfies ReadonlyArray<keyof ApiClient>;
 
 /** The main admin's "view as" opens the insurance panel with a sample session, so it stays on sample data. */
@@ -46,6 +51,7 @@ const insuranceIsLive = () => !getStaffSession()?.viewAs;
 function hybrid(): ApiClient {
   const out = { ...mockApi } as Record<keyof ApiClient, unknown>;
   for (const key of PATIENT_METHODS) out[key] = httpApi[key];
+  for (const key of PACS_ADMIN_METHODS) out[key] = httpApi[key];
   for (const key of INSURANCE_METHODS) {
     out[key] = (...args: unknown[]) => ((insuranceIsLive() || key === 'insuranceLogin' ? httpApi[key] : mockApi[key]) as (...a: unknown[]) => unknown)(...args);
   }

@@ -1,6 +1,9 @@
 // Local stand-in for the backend. It keeps its data in the browser.
 import {
   ApiError,
+  type CenterVolume,
+  type SendPeriod,
+  type SendVolume,
   type ActivityItem,
   type AdminSession,
   type ApiClient,
@@ -38,7 +41,7 @@ import { normalizeDigits, toFaDigits } from '../../lib/format';
 import { DOC_LABELS } from '../../lib/labels';
 import { INSURERS } from '../../lib/options';
 import { DEFAULT_PAGE_SIZE } from '../../lib/usePageParams';
-import { getAdminSession, getPatientSession, getStaffSession } from '../../lib/session';
+import { getAdminSession, getPacsSession, getPatientSession, getStaffSession } from '../../lib/session';
 import { sampleInstance, samplePreviews, sampleSeries } from './dicomSample';
 import { makeZip } from '../../lib/zip';
 import { readJson, removeKey, writeJson } from '../../lib/storage';
@@ -296,6 +299,15 @@ function myCase(db: MockDb, caseId: string): MockCase {
   if (c.patient.id !== patient.id) throw new ApiError('NOT_FOUND', 'این پرونده پیدا نشد.');
   return c;
 }
+
+/** The day an ISO time falls on in Tehran, as YYYY-MM-DD. */
+const tehranDay = (iso: string | Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tehran' }).format(new Date(iso));
+const addDays = (day: string, n: number) => {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+const PERIOD_DAYS: Record<SendPeriod, number | null> = { today: 1, '7d': 7, '30d': 30, all: null };
 
 function requireStaff(role: StaffRole): StaffSession {
   const session = getStaffSession();
@@ -596,6 +608,54 @@ export const mockApi: ApiClient = {
     // Cases with a conflict or still with the patient never reach the insurance panel.
     if (c.stage !== 'AT_INSURER') throw new ApiError('NOT_FOUND', 'این پرونده در پنل بیمه نیست.');
     return toStaffCase(c);
+  },
+
+  async pacsAdminLogin({ username, password }) {
+    await wait(250);
+    if (username.trim() !== 'pacs-admin' || password !== 'pacs1234') throw new ApiError('INVALID_LOGIN', 'نام کاربری یا رمز عبور درست نیست.');
+    return { token: 'pacs-admin-token', name: 'مدیر PACS' };
+  },
+
+  async getSendVolume(period) {
+    await wait();
+    if (!getPacsSession()) throw new ApiError('UNAUTHORIZED', 'لطفاً دوباره وارد شوید.');
+    const db = load();
+    const today = tehranDay(new Date());
+    const days = PERIOD_DAYS[period];
+    const start = days ? addDays(today, 1 - days) : null;
+    const zips = db.zips.map((z) => ({ ...z, day: tehranDay(z.receivedAt) })).filter((z) => !start || z.day >= start);
+    const centers: CenterVolume[] = allHospitals(db).map((h) => {
+      const mine = zips.filter((z) => z.hospitalId === h.id);
+      const last = mine.map((z) => z.receivedAt).sort().pop();
+      return {
+        id: h.id,
+        name: h.name,
+        sent: mine.length,
+        accepted: mine.filter((z) => z.status === 'READY').length,
+        rejected: mine.filter((z) => z.status !== 'READY').length,
+        sizeBytes: mine.reduce((sum, z) => sum + z.sizeBytes, 0),
+        ...(last ? { lastSentAt: last } : {}),
+      };
+    });
+    centers.sort((a, b) => b.sent - a.sent || a.name.localeCompare(b.name, 'fa'));
+    const firstSent = zips.map((z) => z.day).sort()[0];
+    let first = start ?? firstSent ?? today;
+    if (first < addDays(today, -89)) first = addDays(today, -89);
+    const daily: SendVolume['daily'] = [];
+    for (let day = first; day <= today; day = addDays(day, 1)) daily.push({ date: day, sent: zips.filter((z) => z.day === day).length });
+    return {
+      period,
+      from: start ?? firstSent ?? null,
+      to: today,
+      total: {
+        sent: zips.length,
+        accepted: zips.filter((z) => z.status === 'READY').length,
+        rejected: zips.filter((z) => z.status !== 'READY').length,
+        sizeBytes: zips.reduce((sum, z) => sum + z.sizeBytes, 0),
+      },
+      centers,
+      daily,
+    };
   },
 
   async getStudyImages(id) {

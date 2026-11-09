@@ -45,6 +45,10 @@ class Settings:
     insurance_username: str = field(default_factory=lambda: os.environ.get('INSURANCE_USERNAME', 'dana-admin').strip())
     insurance_password: str = field(default_factory=lambda: os.environ.get('INSURANCE_PASSWORD', 'dana1234'))
     insurance_name: str = field(default_factory=lambda: os.environ.get('INSURANCE_NAME', 'کارشناس بیمه دانا').strip())
+    # The PACS admin panel's first account: sees how much each medical center sent, nothing about patients.
+    pacs_admin_username: str = field(default_factory=lambda: os.environ.get('PACS_ADMIN_USERNAME', 'pacs-admin').strip())
+    pacs_admin_password: str = field(default_factory=lambda: os.environ.get('PACS_ADMIN_PASSWORD', 'pacs1234'))
+    pacs_admin_name: str = field(default_factory=lambda: os.environ.get('PACS_ADMIN_NAME', 'مدیر PACS').strip())
     max_zip_mb: int = field(default_factory=lambda: int(os.environ.get('MAX_ZIP_MB', '300')))
     cors_origins: list[str] = field(default_factory=lambda: _list('CORS_ORIGINS', 'http://localhost:5173,http://localhost:8080'))
     worker_interval_seconds: float = field(default_factory=lambda: float(os.environ.get('WORKER_INTERVAL_SECONDS', '5')))

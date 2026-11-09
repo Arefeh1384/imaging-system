@@ -81,6 +81,8 @@ export const httpApi: ApiClient = {
   getInsuranceCase: (id) => request(`/insurance/cases/${id}`),
 
   getStudyImages: (id) => request(`/imaging/cases/${id}/images`),
+  pacsAdminLogin: (input) => post('/pacs-admin/login', input),
+  getSendVolume: (period) => request(`/pacs-admin/volume${query({ period })}`),
 
   adminLogin: (input) => post('/admin/login', input),
   getOverview: () => request('/admin/overview'),

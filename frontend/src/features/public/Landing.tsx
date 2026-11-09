@@ -7,6 +7,7 @@ import { CARD, GUTTER } from '../../components/classes';
 const ENTRIES: Array<{ to: string; title: string; text: string; action: string; icon: IconName; border: string; iconTone: string; button: string }> = [
   { to: '/portal/login', title: 'بیمار', text: 'مدارک خود را کامل کنید و برای بیمه بفرستید.', action: 'ورود بیمار', icon: 'user', border: 'border-accent', iconTone: 'bg-accent-soft text-accent-soft-ink', button: '' },
   { to: '/insurance/login', title: 'بیمه دانا', text: 'پرونده‌های بررسی‌شده و سهم بیمه', action: 'ورود بیمه', icon: 'pulse', border: 'border-share-insurance', iconTone: 'bg-warn-bg text-warn-ink', button: 'bg-ink' },
+  { to: '/pacs-admin/login', title: 'مدیر PACS', text: 'هر مرکز درمانی چند ZIP فرستاده است', action: 'ورود مدیر PACS', icon: 'inbox', border: 'border-share-hospital', iconTone: 'bg-ok-bg text-ok-ink', button: 'bg-ink' },
   { to: '/admin/login', title: 'مدیریت کل', text: 'بیمارستان‌ها، کارمزدها و همه حساب‌ها', action: 'ورود مدیر', icon: 'building', border: 'border-share-management', iconTone: 'bg-neutral-bg text-neutral-ink', button: 'bg-ink' },
 ];
 
@@ -34,7 +35,7 @@ export function Landing() {
           ))}
         </div>
         {apiMode === 'mock' ? <Notice tone="warn">این نسخه هنوز به سرور وصل نیست و داده‌های نمونه را در همین مرورگر نگه می‌دارد.</Notice> : null}
-        {apiMode === 'hybrid' ? <Notice tone="warn">پنل بیمار و پنل بیمه به سرور وصل‌اند. پنل مدیر هنوز داده‌های نمونه را نشان می‌دهد.</Notice> : null}
+        {apiMode === 'hybrid' ? <Notice tone="warn">پنل بیمار، پنل بیمه و پنل مدیر PACS به سرور وصل‌اند. پنل مدیریت کل هنوز داده‌های نمونه را نشان می‌دهد.</Notice> : null}
       </div>
     </main>
   );

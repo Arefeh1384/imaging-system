@@ -10,8 +10,8 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
 
 | Folder | What it is | Port |
 | --- | --- | --- |
-| `frontend/` | React app (the same one as before). Built with `VITE_API_MODE=hybrid`: the patient and insurance panels call the backend, the main admin panel stays on sample data. | 8080 |
-| `backend/` | FastAPI + SQLite. PACS intake, patient sign-in, the patient's case actions, the background check, and the insurance panel. API docs at `/docs`. | 8000 |
+| `frontend/` | React app (the same one as before). Built with `VITE_API_MODE=hybrid`: the patient, insurance and PACS admin panels call the backend, the main admin panel stays on sample data. | 8080 |
+| `backend/` | FastAPI + SQLite. PACS intake, patient sign-in, the patient's case actions, the background check, the insurance panel and the PACS admin panel. API docs at `/docs`. | 8000 |
 | `sandbox/` | Sample PACS with an «ارسال» button per study, SMS inbox, e-prescription service. | 8001 |
 | `datasets/` | 15 invented mammography cases: DICOM, details, reports, prescriptions, e-prescriptions, photos for the patient to upload. | |
 | `docs/` | The Docker guide. | |
@@ -30,6 +30,10 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
    - All pass: `AT_INSURER`, the share from the price list (mammography 600,000 Toman), SMS "پرونده شما کامل است و برای بیمه ارسال شد". The case appears in the insurance panel's case list with the prescription, the report, the DICOM picture, the AI's findings and the share.
    - A conflict: `REJECTED_CONFLICT` with the reason, SMS to call the center.
    - Checker unreachable: tried again in 5 minutes.
+
+## PACS admin panel
+
+At `/pacs-admin`, for whoever runs the PACS relay. It answers one question: how much each medical center has sent. For today, 7 days, 30 days or everything: the total, accepted and refused ZIPs, size, one bar per day, and a row per center with its share of the total and its last send. Centers that sent nothing in the period are listed too. Every ZIP counts once, accepted or not; days are Tehran time. The panel never shows patients or medical content, and its account can't open the insurance panel.
 
 ## The checker
 
@@ -57,6 +61,8 @@ The PACS, the SMS gateway and the e-prescription service are stand-ins in the **
 | `GET /api/v1/insurance/cases` | Approved cases only, newest first. `hospitalId`, `page`, `pageSize`. |
 | `GET /api/v1/insurance/cases/{id}` | One approved case: patient, documents, AI opinion, share. Rejected or waiting cases answer 404. |
 | `GET /api/v1/imaging/cases/{id}/images` | The DICOM pictures of an approved case, as PNG. |
+| `POST /api/v1/pacs-admin/login` | PACS admin sign-in (`PACS_ADMIN_USERNAME`, `PACS_ADMIN_PASSWORD`). |
+| `GET /api/v1/pacs-admin/volume` | How many ZIPs each center sent: `period` = `today`, `7d`, `30d` or `all`. Counts, size and last send per center, and one count per day. No patient data. |
 | `/api/v1/dev/...` | Demo tools (list cases, events, check now, reset). Only with `DEMO_MODE=true`. |
 
 Errors come back as `{"code": "...", "message": "..."}` with a Persian message, which the frontend shows as is.

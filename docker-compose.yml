@@ -16,6 +16,8 @@ services:
       PACS_API_KEY: ${PACS_API_KEY:-dev-pacs-key}
       INSURANCE_USERNAME: ${INSURANCE_USERNAME:-dana-admin}
       INSURANCE_PASSWORD: ${INSURANCE_PASSWORD:-dana1234}
+      PACS_ADMIN_USERNAME: ${PACS_ADMIN_USERNAME:-pacs-admin}
+      PACS_ADMIN_PASSWORD: ${PACS_ADMIN_PASSWORD:-pacs1234}
       SMS_GATEWAY_URL: http://sandbox:8001/sms/api/send
       ERX_SERVICE_URL: http://sandbox:8001/erx/api/prescriptions
       PORTAL_URL: ${PORTAL_URL:-http://localhost:8080}

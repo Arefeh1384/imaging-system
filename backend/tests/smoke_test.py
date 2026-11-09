@@ -252,6 +252,29 @@ def main() -> int:
     ok('insurer: dashboard share and conflict causes', dash['insurerShareRial'] == len(approved) * 6_000_000 and dash['conflicts']['PRESCRIPTION_NAME'] == 2 and dash['conflicts']['PATIENT_DENIED'] == 1, dash.get('conflicts'))
     ok('insurer: one row per center', len(dash['hospitals']) == 3 and sum(h['cases']['atInsurer'] for h in dash['hospitals']) == len(approved), len(dash['hospitals']))
 
+    # ---- the PACS admin sees only how much each center sent
+    s, err = call('POST', '/pacs-admin/login', {'username': 'dana-admin', 'password': 'dana1234'})
+    ok("PACS admin: an insurance account can't sign in here", err.get('code') == 'INVALID_LOGIN', err)
+    s, pa = call('POST', '/pacs-admin/login', {'username': 'pacs-admin', 'password': 'pacs1234'})
+    ok('PACS admin: signs in', s == 200 and pa.get('token'), pa)
+    pt = pa['token']
+    s, err = call('GET', '/insurance/cases', token=pt)
+    ok("PACS admin: can't open the insurance panel", s == 401, s)
+    s, err = call('GET', '/pacs-admin/volume', token=it)
+    ok("PACS admin: the insurance account can't open the volume", s == 401, s)
+    s, vol = call('GET', '/pacs-admin/volume?period=today', token=pt)
+    ok('PACS admin: 16 ZIPs today, 14 accepted, 2 refused', vol['total'] == {**vol['total'], 'sent': 16, 'accepted': 14, 'rejected': 2}, vol.get('total'))
+    by_name = {c['name']: c for c in vol['centers']}
+    ok('PACS admin: per center 6, 6 and 4', [by_name[n]['sent'] for n in ('بیمارستان امام حسین', 'بیمارستان بقیه‌الله', 'مرکز تصویربرداری پارس')] == [6, 6, 4], {n: c['sent'] for n, c in by_name.items()})
+    ok('PACS admin: most sends first', [c['sent'] for c in vol['centers']] == sorted((c['sent'] for c in vol['centers']), reverse=True))
+    ok('PACS admin: refused ZIPs counted per center', by_name['بیمارستان امام حسین']['rejected'] == 1 and by_name['بیمارستان بقیه‌الله']['rejected'] == 1)
+    ok('PACS admin: size and last send shown', vol['total']['sizeBytes'] > 0 and all(c.get('lastSentAt') for c in vol['centers']))
+    ok('PACS admin: one daily bar for today', len(vol['daily']) == 1 and vol['daily'][0]['sent'] == 16, vol.get('daily'))
+    s, vol30 = call('GET', '/pacs-admin/volume?period=30d', token=pt)
+    ok('PACS admin: 30 days gives 30 daily bars', len(vol30['daily']) == 30 and vol30['total']['sent'] == 16, len(vol30.get('daily', [])))
+    text = json.dumps(vol30, ensure_ascii=False)
+    ok('PACS admin: no patient names or national IDs in the answer', not any(c['patient']['name'] in text or c['patient']['nationalId'] in text for c in cases.values()))
+
     print('all passed' if not fails else f'FAILED {fails}')
     return 1 if fails else 0
 

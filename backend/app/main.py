@@ -14,7 +14,7 @@ from . import db, review, staff
 from .checker import get_checker
 from .config import settings
 from .errors import ApiError
-from .routes import dev, ingest, insurance, portal
+from .routes import dev, ingest, insurance, pacs_admin, portal
 from .worker import Worker
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s: %(message)s')
@@ -59,4 +59,5 @@ def health():
 app.include_router(ingest.router)
 app.include_router(portal.router)
 app.include_router(insurance.router)
+app.include_router(pacs_admin.router)
 app.include_router(dev.router)

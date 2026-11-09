@@ -17,7 +17,7 @@ class LoginInput(BaseModel):
 
 @router.post('/insurance/login')
 def login(body: LoginInput):
-    return staff.login(body.username, body.password)
+    return staff.login(body.username, body.password, role='INSURANCE_ADMIN')
 
 
 @router.get('/insurance/dashboard')

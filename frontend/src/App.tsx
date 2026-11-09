@@ -9,6 +9,7 @@ import { AccountsPage } from './features/admin/AccountsPage';
 import { CompanyPage, HospitalPage, OverviewPage, ZipListPage } from './features/admin/FinancePages';
 import { ZipDetailPage } from './features/admin/ZipDetailPage';
 import { PacsSimulator } from './features/admin/PacsSimulator';
+import { PacsAdminLogin, PacsVolumePage } from './features/pacs-admin/PacsAdmin';
 
 const routes: RouteDef[] = [
   { path: '/', element: <Landing /> },
@@ -25,6 +26,10 @@ const routes: RouteDef[] = [
   { path: '/insurance/admin', element: <InsuranceDashboardPage /> },
   { path: '/insurance/admin/cases', element: <InsuranceCasesPage /> },
   { path: '/insurance/admin/cases/:caseId', element: <InsuranceCasePage /> },
+
+  // PACS admin
+  { path: '/pacs-admin/login', element: <PacsAdminLogin /> },
+  { path: '/pacs-admin', element: <PacsVolumePage /> },
 
   // Main admin
   { path: '/admin/login', element: <AdminLogin /> },

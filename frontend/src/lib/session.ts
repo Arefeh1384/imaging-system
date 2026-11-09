@@ -1,9 +1,10 @@
-import type { AdminSession, PatientSession, StaffSession } from '../api/types';
+import type { AdminSession, PacsAdminSession, PatientSession, StaffSession } from '../api/types';
 import { readTabJson, removeKey, removeTabKey, writeTabJson } from './storage';
 
 const PATIENT_KEY = 'imaging.session.patient';
 const STAFF_KEY = 'imaging.session.staff';
 const ADMIN_KEY = 'imaging.session.admin';
+const PACS_KEY = 'imaging.session.pacs';
 
 // Sign-ins last until the tab is closed, so a shared computer doesn't stay signed in.
 // Earlier versions kept them permanently, so clear those.
@@ -18,6 +19,10 @@ export const getStaffSession = () => readTabJson<StaffSession>(STAFF_KEY);
 export const setStaffSession = (s: StaffSession) => writeTabJson(STAFF_KEY, s);
 export const clearStaffSession = () => removeTabKey(STAFF_KEY);
 
+export const getPacsSession = () => readTabJson<PacsAdminSession>(PACS_KEY);
+export const setPacsSession = (s: PacsAdminSession) => writeTabJson(PACS_KEY, s);
+export const clearPacsSession = () => removeTabKey(PACS_KEY);
+
 export const getAdminSession = () => readTabJson<AdminSession>(ADMIN_KEY);
 export const setAdminSession = (s: AdminSession) => writeTabJson(ADMIN_KEY, s);
 export const clearAdminSession = () => removeTabKey(ADMIN_KEY);
@@ -26,5 +31,6 @@ export function getSessionToken(): string | null {
   const path = typeof location !== 'undefined' ? location.pathname : '';
   if (path.startsWith('/admin')) return getAdminSession()?.token ?? null;
   if (path.startsWith('/insurance')) return getStaffSession()?.token ?? null;
+  if (path.startsWith('/pacs-admin')) return getPacsSession()?.token ?? null;
   return getPatientSession()?.token ?? null;
 }
