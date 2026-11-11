@@ -11,8 +11,10 @@ services:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
     environment:
       DATA_DIR: /data
-      DEMO_MODE: "true"
-      SECRET_KEY: ${SECRET_KEY:-local-only-secret-change-me}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      SECRET_KEY: ${SECRET_KEY:-}
+      # How many backend processes answer requests at once. About one per CPU core.
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
       PACS_API_KEY: ${PACS_API_KEY:-dev-pacs-key}
       INSURANCE_USERNAME: ${INSURANCE_USERNAME:-dana-admin}
       INSURANCE_PASSWORD: ${INSURANCE_PASSWORD:-dana1234}
