@@ -124,7 +124,7 @@ export function AiOpinionCard({ opinion }: { opinion?: AiOpinion }) {
               <div className="font-bold text-small">{f.title}</div>
               <div className="ai-finding-detail text-small">{f.detail}</div>
             </div>
-            <span className={chipClass(f.result === 'PASS' ? 'ok' : 'bad')}>{f.result === 'PASS' ? 'هم‌خوان' : 'مغایرت'}</span>
+            <span className={chipClass(f.result === 'PASS' ? 'ok' : 'bad')}>{f.result === 'PASS' ? 'هم‌خوان' : f.problem === 'UNREADABLE' ? 'ناخوانا' : f.problem === 'NOT_THE_DOCUMENT' ? 'مدرک نادرست' : 'مغایرت'}</span>
           </div>
         ))}
       </div>

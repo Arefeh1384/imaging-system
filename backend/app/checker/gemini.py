@@ -13,7 +13,7 @@ import urllib.parse
 import urllib.request
 
 from ..config import settings
-from .base import CHECKS, CheckerUnavailable, CheckInput, CheckResult
+from .base import CHECKS, PROBLEMS, CheckerUnavailable, CheckInput, CheckResult, findings_from
 
 PROMPT = """You check imaging insurance claims for consistency. You do not diagnose.
 You receive: the patient's record, the study details sent by the hospital's PACS, one picture made from the DICOM study,
@@ -27,7 +27,16 @@ Run these four checks and report each one:
 3. REPORT_IMAGES: does the radiologist's report describe this imaging (same type and body part)?
 4. IMAGE_PATIENT: does the picture look like the imaging the study details describe, and do the DICOM details belong to this patient?
 
-If a document is missing or unreadable, pass that check and say so in the detail. Only fail a check on clear evidence.
+For each check give "passed" and "problem":
+- NONE: you could read the details the check needs and they agree. Only then is "passed" true.
+- MISMATCH: you could read the details and they disagree.
+- UNREADABLE: the document the check needs is too blurry, dark, cut off or small to read those details.
+- NOT_THE_DOCUMENT: the file sent as the prescription is not a medical prescription, or the file sent as the report is
+  not a radiology report (for example a photo or screenshot of something else, or a blank page), or the DICOM picture
+  is not the kind of imaging the study details describe.
+Never pass a check you could not verify. Spelling variants of a name are not a mismatch, and a detail the document
+simply does not carry (for example no national ID on a prescription) is not a problem when what it does carry agrees.
+When an electronic prescription is given as JSON, use it for the prescription checks.
 Write every "detail" and the "summary" in Persian, in one short plain sentence each, for an insurance clerk.
 """
 
@@ -42,9 +51,10 @@ SCHEMA = {
                 'properties': {
                     'check': {'type': 'STRING', 'enum': list(CHECKS)},
                     'passed': {'type': 'BOOLEAN'},
+                    'problem': {'type': 'STRING', 'enum': PROBLEMS},
                     'detail': {'type': 'STRING'},
                 },
-                'required': ['check', 'passed', 'detail'],
+                'required': ['check', 'passed', 'problem', 'detail'],
             },
         },
     },
@@ -93,9 +103,7 @@ def parse_response(body: dict) -> CheckResult:
         data = json.loads(text)
     except (KeyError, IndexError, ValueError) as err:
         raise CheckerUnavailable(f'Gemini answered in an unexpected shape: {str(body)[:300]}') from err
-    by_check = {f['check']: f for f in data.get('findings', []) if f.get('check') in CHECKS}
-    findings = [by_check.get(k, {'check': k, 'passed': True, 'detail': 'هوش مصنوعی درباره این مورد چیزی ننوشت.'}) for k in CHECKS]
-    return CheckResult(findings=[{'check': f['check'], 'passed': bool(f['passed']), 'detail': str(f.get('detail', ''))} for f in findings],
+    return CheckResult(findings=findings_from(data),
                        summary=str(data.get('summary', '')), model_version=f'Gemini ({settings.gemini_model})', by_ai=True, raw_answer=text.strip())
 
 

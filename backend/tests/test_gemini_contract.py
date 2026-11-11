@@ -54,6 +54,7 @@ class FakeGemini(BaseHTTPRequestHandler):
                 {'check': 'PRESCRIPTION_STUDY', 'passed': not conflict, 'detail': 'نوع تصویربرداری بررسی شد.'},
                 {'check': 'PRESCRIPTION_NAME', 'passed': True, 'detail': 'نام یکی است.'},
                 {'check': 'REPORT_IMAGES', 'passed': True, 'detail': 'گزارش درباره ماموگرافی است.'},
+                {'check': 'IMAGE_PATIENT', 'passed': True, 'detail': 'تصویر ماموگرافی است.'},
             ],
         }
         out = json.dumps({'candidates': [{'content': {'parts': [{'text': json.dumps(answer, ensure_ascii=False)}]}}]}).encode()

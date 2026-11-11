@@ -115,6 +115,8 @@ export interface AiFinding {
   result: 'PASS' | 'CONFLICT';
   /** The document this finding is about. */
   target: DocKey;
+  /** Why it failed: the details disagree, the document can't be read, or it isn't the right document. */
+  problem?: 'NONE' | 'MISMATCH' | 'UNREADABLE' | 'NOT_THE_DOCUMENT';
 }
 
 /** The AI compares the prescription, the report, the images and the patient's details. */

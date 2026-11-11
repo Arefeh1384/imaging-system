@@ -11,7 +11,6 @@ import time
 from . import db, dicomio, files, tariff
 from .cases import reject_for_conflict
 from .checker import CheckerUnavailable, CheckInput, Document, get_checker
-from .checker.base import CONFLICT_REASONS
 from .config import settings
 from .gateways import ServiceUnavailable, fetch_eprescription, send_sms
 from .text import erx_missing_sms, fa_digits, sent_sms
@@ -154,7 +153,7 @@ def _run(case_id: str) -> str:
     db.log_event(case_id, 'AI' if result.by_ai else 'SYSTEM', f"{result.model_version}: {opinion['summary']}")
     kind = result.conflict_kind
     if kind:
-        reject_for_conflict(c, kind, CONFLICT_REASONS[kind], 'AI')
+        reject_for_conflict(c, kind, result.conflict_reason, 'AI')
         return 'conflict'
     modality = (c['study'].get('dicom') or {}).get('modality') or c['study'].get('modality', '')
     db.update('cases', {'id': case_id}, {'stage': 'AT_INSURER', 'insurance_share': tariff.share_for(modality), 'process_at': None})

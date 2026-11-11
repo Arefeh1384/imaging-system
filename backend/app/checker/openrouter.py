@@ -15,7 +15,7 @@ import urllib.error
 import urllib.request
 
 from ..config import settings
-from .base import CHECKS, CheckerUnavailable, CheckInput, CheckResult
+from .base import CHECKS, PROBLEMS, CheckerUnavailable, CheckInput, CheckResult, findings_from
 from .gemini import PROMPT
 
 # The same answer the Gemini checker asks for, written as standard JSON Schema.
@@ -30,9 +30,10 @@ SCHEMA = {
                 'properties': {
                     'check': {'type': 'string', 'enum': list(CHECKS)},
                     'passed': {'type': 'boolean'},
+                    'problem': {'type': 'string', 'enum': PROBLEMS},
                     'detail': {'type': 'string'},
                 },
-                'required': ['check', 'passed', 'detail'],
+                'required': ['check', 'passed', 'problem', 'detail'],
                 'additionalProperties': False,
             },
         },
@@ -41,7 +42,7 @@ SCHEMA = {
     'additionalProperties': False,
 }
 JSON_ONLY = ('Answer with JSON only, no other text, in this shape: '
-             '{"summary": "...", "findings": [{"check": "PRESCRIPTION_STUDY", "passed": true, "detail": "..."}, ...]} '
+             '{"summary": "...", "findings": [{"check": "PRESCRIPTION_STUDY", "passed": true, "problem": "NONE", "detail": "..."}, ...]} '
              'with one finding for each of PRESCRIPTION_STUDY, PRESCRIPTION_NAME, REPORT_IMAGES, IMAGE_PATIENT.')
 
 
@@ -190,10 +191,9 @@ def parse_response(body: dict) -> CheckResult:
         data = _json_from(content)
     except (KeyError, IndexError, TypeError, ValueError) as err:
         raise CheckerUnavailable(f'The model answered in an unexpected shape: {str(body)[:300]}') from err
-    by_check = {f['check']: f for f in data.get('findings', []) if isinstance(f, dict) and f.get('check') in CHECKS}
-    findings = [by_check.get(k, {'check': k, 'passed': True, 'detail': 'هوش مصنوعی درباره این مورد چیزی ننوشت.'}) for k in CHECKS]
+    findings = findings_from(data)
     model = body.get('model') or settings.openrouter_model
-    return CheckResult(findings=[{'check': f['check'], 'passed': bool(f['passed']), 'detail': str(f.get('detail', ''))} for f in findings],
+    return CheckResult(findings=findings,
                        summary=str(data.get('summary', '')), model_version=f'OpenRouter ({model})', by_ai=True, raw_answer=content.strip())
 
 

@@ -172,6 +172,31 @@ def main() -> int:
     ok('connection test explains a refused key', code == 1 and 'OPENROUTER_API_KEY' in out.getvalue(), out.getvalue())
     mode.clear()
     server.shutdown()
+    # Unreadable or wrong documents fail, even when the model marks them passed.
+    from app.checker.base import CheckerUnavailable as _CU
+    from app.checker.openrouter import parse_response as _parse
+    def wrap(findings):
+        return {'model': 'm', 'choices': [{'finish_reason': 'stop', 'message': {'content': json.dumps({'summary': 's', 'findings': findings}, ensure_ascii=False)}}]}
+    base = [{'check': k, 'passed': True, 'problem': 'NONE', 'detail': 'ok'} for k in ('PRESCRIPTION_STUDY', 'PRESCRIPTION_NAME', 'REPORT_IMAGES', 'IMAGE_PATIENT')]
+    f = [dict(x) for x in base]; f[1].update(passed=True, problem='UNREADABLE', detail='نسخه ناخوانا است.')
+    r = _parse(wrap(f))
+    ok('"passed" with an unreadable prescription counts as failed', r.conflict_kind == 'PRESCRIPTION_NAME' and r.conflict_reason == 'نسخه‌ای که فرستاده شد خوانا نیست.', (r.conflict_kind, r.conflict_reason))
+    f = [dict(x) for x in base]; f[0].update(passed=False, problem='MISMATCH'); f[1].update(passed=False, problem='NOT_THE_DOCUMENT')
+    r = _parse(wrap(f))
+    ok('a file that is not a prescription is the reason given, before the mismatch it causes', r.conflict_kind == 'PRESCRIPTION_NAME' and 'نسخه پزشکی نیست' in r.conflict_reason, (r.conflict_kind, r.conflict_reason))
+    ok('the opinion names the problem for the insurer', r.opinion('t')['findings'][1]['problem'] == 'NOT_THE_DOCUMENT')
+    f = [dict(x) for x in base]; f[2].update(passed=False, problem='NONE')
+    r = _parse(wrap(f))
+    ok('a failed check without a problem is a mismatch', r.conflict_kind == 'REPORT_IMAGES' and r.findings[2]['problem'] == 'MISMATCH' and r.conflict_reason == 'گزارش رادیولوژیست به این تصویربرداری مربوط نیست.', r.findings[2])
+    f = [{k: v for k, v in x.items() if k != 'problem'} for x in base]
+    ok('an answer without "problem" still works', _parse(wrap(f)).conflict_kind is None)
+    try:
+        _parse(wrap(base[:3])); ok('a skipped check is retried, not passed', False)
+    except _CU as err:
+        ok('a skipped check is retried, not passed', 'IMAGE_PATIENT' in str(err), err)
+    rf = body['response_format']['json_schema']['schema']['properties']['findings']['items']
+    ok('the schema asks for the problem', 'problem' in rf['required'] and rf['properties']['problem']['enum'] == ['NONE', 'MISMATCH', 'UNREADABLE', 'NOT_THE_DOCUMENT'], rf)
+    ok('the instructions say never to pass what could not be verified', 'Never pass a check you could not verify' in body['messages'][0]['content'])
     print('all passed' if not fails else f'FAILED {fails}')
     return 1 if fails else 0
 
