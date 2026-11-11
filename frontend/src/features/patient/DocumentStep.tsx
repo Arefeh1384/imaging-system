@@ -1,14 +1,25 @@
-// One document, one screen: take or choose a photo, watch it scan, confirm it is readable.
+// One document, one screen: take or choose a photo; the scanner finds the paper, flattens it and cleans it up;
+// the patient fixes the corners if needed and confirms it is readable.
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { api } from '../../api/client';
 import type { PatientCase, UploadDocKey } from '../../api/types';
 import { Button, buttonClass, Notice } from '../../components/ui';
 import { toFaDigits } from '../../lib/format';
 import { DOC_LABELS } from '../../lib/labels';
-import { prepareScan, type ScannedFile } from '../../lib/scan';
+import { asIs, breathe, loadPhoto, scanPhoto, startingCorners, type Photo, type Quad, type ScanIssue, type ScannedFile } from '../../lib/scan';
+import { isUsableQuad, orderCorners, wholeImage } from '../../lib/scanMath';
+import { CornerEditor, PhotoFrame } from './CornerEditor';
 import { documentFileError } from '../../lib/validate';
 
-const SCAN_MS = 2400;
+// The scan takes well under a second; the animation stays at least this long so the patient sees what happened.
+const SCAN_MS = 1400;
+const RESCAN_MS = 700;
+
+const ISSUE_TEXT: Record<Exclude<ScanIssue, 'notFound'>, string> = {
+  blurry: 'عکس کمی تار است. اگر نوشته‌ها خوانا نیستند، گوشی را ثابت نگه دارید و دوباره عکس بگیرید.',
+  dark: 'عکس تاریک است. اگر نوشته‌ها خوانا نیستند، در جای روشن‌تر دوباره عکس بگیرید.',
+  small: 'برگه در عکس کوچک است. اگر نوشته‌ها خوانا نیستند، گوشی را نزدیک‌تر ببرید تا برگه بیشتر کادر را بگیرد.',
+};
 
 const HELP: Record<UploadDocKey, string> = {
   report: 'گزارش رادیولوژیست از بیمارستان به دست ما نرسیده است. لطفاً از آن عکس بگیرید.',
@@ -89,7 +100,7 @@ function GalleryIcon() {
   );
 }
 
-type Phase = 'pick' | 'scanning' | 'confirm';
+type Phase = 'pick' | 'scanning' | 'corners' | 'confirm';
 
 export function DocumentStep({
   caseId,
@@ -105,13 +116,37 @@ export function DocumentStep({
   onCancel?: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>('pick');
+  const [photo, setPhoto] = useState<Photo | null>(null);
+  const [quad, setQuad] = useState<Quad | null>(null);
+  const [outline, setOutline] = useState<Quad | null>(null);
   const [scan, setScan] = useState<ScannedFile | null>(null);
   const [fromCamera, setFromCamera] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const timer = useRef<number | undefined>(undefined);
+  const run = useRef(0);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  /** Shows the scanning screen for at least `ms`, then the next one. */
+  const finish = (started: number, ms: number, next: () => void) => {
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(next, Math.max(0, ms - (Date.now() - started)));
+  };
+
+  const makeScan = async (from: Photo, corners: Quad, found: boolean, started: number, ms: number) => {
+    const id = run.current;
+    try {
+      const result = await scanPhoto(from, corners, found);
+      if (id !== run.current) return;
+      setScan(result);
+      finish(started, ms, () => setPhase('confirm'));
+    } catch {
+      if (id !== run.current) return;
+      setError('اسکن این عکس انجام نشد. لطفاً دوباره عکس بگیرید.');
+      setPhase('pick');
+    }
+  };
 
   const pick = (camera: boolean) => async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -122,14 +157,50 @@ export function DocumentStep({
       setError(problem);
       return;
     }
+    const id = ++run.current;
     setError(null);
     setFromCamera(camera);
+    setPhoto(null);
+    setOutline(null);
+    setScan(null);
     setPhase('scanning');
     const started = Date.now();
-    const result = await prepareScan(file);
-    setScan(result);
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setPhase('confirm'), Math.max(0, SCAN_MS - (Date.now() - started)));
+    if (!file.type.startsWith('image/')) {
+      setScan(asIs(file));
+      finish(started, RESCAN_MS, () => setPhase('confirm'));
+      return;
+    }
+    await breathe();
+    const loaded = await loadPhoto(file);
+    if (id !== run.current) return;
+    if (!loaded) {
+      // A photo this browser can't open is sent as it is.
+      setScan(asIs(file));
+      finish(started, SCAN_MS, () => setPhase('confirm'));
+      return;
+    }
+    setPhoto(loaded);
+    if (!loaded.found) {
+      setQuad(startingCorners(loaded));
+      finish(started, RESCAN_MS, () => setPhase('corners'));
+      return;
+    }
+    setQuad(loaded.quad);
+    setOutline(loaded.quad);
+    await breathe();
+    await makeScan(loaded, loaded.quad, true, started, SCAN_MS);
+  };
+
+  const applyCorners = async () => {
+    if (!photo || !quad) return;
+    const ordered = orderCorners(quad);
+    run.current++;
+    setQuad(ordered);
+    setOutline(ordered);
+    setScan(null);
+    setPhase('scanning');
+    await breathe();
+    await makeScan(photo, ordered, true, Date.now(), RESCAN_MS);
   };
 
   const accept = async () => {
@@ -192,12 +263,44 @@ export function DocumentStep({
       {phase === 'scanning' ? (
         <>
           <h1 className="text-center">در حال اسکن {label}</h1>
-          <div className="relative flex items-center justify-center overflow-hidden rounded-card shadow-card [&_img]:block [&_img]:w-full [&_img]:object-contain min-h-[300px] bg-viewer after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(var(--color-scan)_2px,transparent_2px),linear-gradient(90deg,var(--color-scan)_2px,transparent_2px)] after:bg-[size:34px_34px] after:opacity-12 [&_img]:max-h-[52dvh]" role="status" aria-label="در حال اسکن">
-            {scan?.previewUrl ? <img src={scan.previewUrl} alt="" /> : <div className="h-[300px] w-full" />}
+          <div className="relative flex items-center justify-center overflow-hidden rounded-card shadow-card min-h-[300px] bg-viewer after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(var(--color-scan)_2px,transparent_2px),linear-gradient(90deg,var(--color-scan)_2px,transparent_2px)] after:bg-[size:34px_34px] after:opacity-12" role="status" aria-label={outline ? 'برگه پیدا شد، در حال صاف کردن و تمیز کردن آن' : 'در حال پیدا کردن لبه‌های برگه'}>
+            {photo ? <PhotoFrame src={photo.previewUrl} width={photo.source.width} height={photo.source.height} quad={outline ?? undefined} /> : <div className="h-[300px] w-full" />}
             <span className="pointer-events-none absolute inset-3.5 [background:linear-gradient(var(--color-scan),var(--color-scan))_top_right/34px_4px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_top_right/4px_34px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_top_left/34px_4px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_top_left/4px_34px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_bottom_right/34px_4px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_bottom_right/4px_34px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_bottom_left/34px_4px_no-repeat,linear-gradient(var(--color-scan),var(--color-scan))_bottom_left/4px_34px_no-repeat]" aria-hidden="true" />
             <span className="scan-line absolute inset-x-0 top-0 h-1 animate-scan-sweep bg-scan shadow-[0_0_18px_6px_var(--color-scan)] motion-reduce:top-1/2 motion-reduce:animate-none" aria-hidden="true" />
           </div>
-          <p className="text-center text-ink">چند لحظه صبر کنید.</p>
+          <p className="text-center text-ink">{outline ? 'برگه پیدا شد. در حال صاف کردن و تمیز کردن آن…' : 'در حال پیدا کردن لبه‌های برگه…'}</p>
+        </>
+      ) : null}
+
+      {phase === 'corners' && photo && quad ? (
+        <>
+          <h1 className="text-center">لبه‌های برگه را تنظیم کنید</h1>
+          {photo.found ? (
+            <p className="text-center text-ink">دایره‌ها را روی چهار گوشه برگه بکشید.</p>
+          ) : (
+            <Notice tone="warn">لبه‌های برگه در عکس پیدا نشد. دایره‌ها را روی چهار گوشه برگه بکشید.</Notice>
+          )}
+          <CornerEditor src={photo.previewUrl} width={photo.source.width} height={photo.source.height} quad={quad} onChange={setQuad} />
+          {!isUsableQuad(orderCorners(quad), photo.source.width, photo.source.height) ? <Notice tone="bad">چهار دایره باید دور برگه باشند و برگه را کامل بگیرند.</Notice> : null}
+          <div className="flex flex-col gap-3 short:flex-row short:gap-2.5 short:[&>*]:flex-1">
+            <Button size="patient" disabled={!isUsableQuad(orderCorners(quad), photo.source.width, photo.source.height)} onClick={() => void applyCorners()}>
+              ادامه
+            </Button>
+            <div className="flex gap-2.5 [&>*]:flex-1">
+              <Button variant="secondary" onClick={() => setQuad(wholeImage(photo.source.width, photo.source.height))}>
+                کل عکس
+              </Button>
+              {scan ? (
+                <Button variant="secondary" onClick={() => setPhase('confirm')}>
+                  برگشت
+                </Button>
+              ) : (
+                <Button variant="secondary" onClick={() => setPhase('pick')}>
+                  عکس دیگر
+                </Button>
+              )}
+            </div>
+          </div>
         </>
       ) : null}
 
@@ -207,7 +310,12 @@ export function DocumentStep({
           <div className="relative flex items-center justify-center overflow-hidden rounded-card shadow-card [&_img]:block [&_img]:w-full [&_img]:object-contain bg-surface [&_img]:max-h-[44dvh] max-lg:[&_img]:max-h-[38dvh] short:[&_img]:max-h-[44dvh]">
             {scan?.previewUrl ? <img src={scan.previewUrl} alt={`عکس اسکن‌شده ${label}`} /> : <p className="px-4 py-10 text-center wrap-anywhere [direction:ltr]">{scan?.file.name}</p>}
           </div>
-          <p className="text-center text-ink [@media(max-height:800px)]:hidden">نوشته‌ها را نگاه کنید. باید راحت خوانده شوند.</p>
+          {scan?.issues.filter((i): i is Exclude<ScanIssue, 'notFound'> => i !== 'notFound').map((issue) => (
+            <Notice key={issue} tone="warn">
+              {ISSUE_TEXT[issue]}
+            </Notice>
+          ))}
+          {!scan?.issues.length ? <p className="text-center text-ink [@media(max-height:800px)]:hidden">نوشته‌ها را نگاه کنید. باید راحت خوانده شوند.</p> : null}
           {error ? <Notice tone="bad">{error}</Notice> : null}
           <div className="flex flex-col gap-4.5 short:flex-row short:gap-2.5 short:[&>*]:flex-1">
             <Button size="patient" busy={busy} onClick={() => void accept()}>
@@ -222,6 +330,11 @@ export function DocumentStep({
               )}
             </label>
           </div>
+          {photo ? (
+            <Button variant="ghost" size="patient" disabled={busy} onClick={() => setPhase('corners')}>
+              برگه درست بریده نشده؟ تنظیم لبه‌ها
+            </Button>
+          ) : null}
         </>
       ) : null}
     </section>
