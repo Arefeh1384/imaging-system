@@ -25,7 +25,7 @@ def list_cases():
     """Every case with its stage, newest first, for the sandbox's overview."""
     _guard()
     rows = db.all_rows(
-        'SELECT c.id, c.stage, c.study_title, c.study_date, c.received_at, c.process_at, c.tracking_number, c.conflict, c.ai_opinion, '
+        'SELECT c.id, c.stage, c.study_title, c.study_date, c.received_at, c.process_at, c.checking_at, c.tracking_number, c.conflict, c.ai_opinion, '
         'c.insurance_share, c.invite_token, c.study, p.name AS patient_name, p.national_id, p.mobile, h.name AS hospital_name '
         'FROM cases c JOIN patients p ON p.id = c.patient_id LEFT JOIN hospitals h ON h.id = c.hospital_id ORDER BY c.received_at DESC'
     )

@@ -25,19 +25,20 @@ LEASE_SECONDS = 600
 def claim(case_id: str) -> bool:
     """Takes a due case for this run, so it is never checked twice at the same time."""
     now = time.time()
-    return db.execute("UPDATE cases SET process_at = ? WHERE id = ? AND stage = 'PROCESSING' AND process_at IS NOT NULL AND process_at <= ?",
-                      (now + LEASE_SECONDS, case_id, now)) == 1
+    return db.execute("UPDATE cases SET process_at = ?, checking_at = ? WHERE id = ? AND stage = 'PROCESSING' AND process_at IS NOT NULL AND process_at <= ?",
+                      (now + LEASE_SECONDS, now, case_id, now)) == 1
 
 
 def requeue_stuck() -> int:
     """At start-up nothing is being checked, so every case waiting for the check is due now: one cut off by the
     restart, one waiting to retry (settings may have just changed), and one left without a time by an older version."""
     now = time.time()
+    db.execute('UPDATE cases SET checking_at = NULL WHERE checking_at IS NOT NULL')
     return db.execute("UPDATE cases SET process_at = ? WHERE stage = 'PROCESSING' AND (process_at IS NULL OR process_at > ?)", (now, now))
 
 
 RETRY_MARK = 'بررسی انجام نشد'
-CHECKING: set[str] = set()  # cases this process is checking right now
+CHECKING: set[str] = set()  # cases this process is checking right now (the database's checking_at covers all processes)
 
 
 def check_status(c: dict) -> dict:
@@ -45,7 +46,8 @@ def check_status(c: dict) -> dict:
     now = time.time()
     out: dict = {}
     if c.get('process_at'):
-        out['checkingNow'] = c['id'] in CHECKING
+        since = c.get('checking_at')
+        out['checkingNow'] = c['id'] in CHECKING or bool(since and since > now - LEASE_SECONDS)
         out['nextAttemptAt'] = None if out['checkingNow'] else max(c['process_at'], now)
     last = db.one('SELECT title, at FROM events WHERE case_id = ? AND title LIKE ? ORDER BY at DESC, rowid DESC LIMIT 1', (c['id'], RETRY_MARK + '%'))
     if last:
@@ -94,6 +96,7 @@ def run(case_id: str) -> str:
         return _run(case_id)
     finally:
         CHECKING.discard(case_id)
+        db.update('cases', {'id': case_id}, {'checking_at': None})
 
 
 def _run(case_id: str) -> str:

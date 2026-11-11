@@ -36,8 +36,9 @@ def check_password(password: str, stored: str) -> bool:
 def _ensure(username: str, password: str, name: str, role: str) -> None:
     if not username or db.one('SELECT id FROM staff WHERE username = ?', (username,)):
         return
-    db.insert('staff', {'id': db.new_id('staff'), 'username': username, 'password_hash': hash_password(password),
-                        'name': name, 'role': role, 'active': 1, 'created_at': db.now_iso()})
+    # OR IGNORE: with several worker processes, two may start at the same moment.
+    db.execute('INSERT OR IGNORE INTO staff (id, username, password_hash, name, role, active, created_at) VALUES (?, ?, ?, ?, ?, 1, ?)',
+               (db.new_id('staff'), username, hash_password(password), name, role, db.now_iso()))
 
 
 def ensure_default_account() -> None:

@@ -6,6 +6,7 @@ Lists and objects are stored as JSON text.
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import threading
 import uuid
@@ -173,6 +174,7 @@ ADDED_COLUMNS = {
     'hospitals': ['company_id TEXT', 'fee_rial INTEGER', 'hospital_rial INTEGER', 'insurance_rial INTEGER', 'management_rial INTEGER'],
     'zips': ['fee_rial INTEGER', 'hospital_rial INTEGER', 'insurance_rial INTEGER', 'management_rial INTEGER',
              'settled INTEGER NOT NULL DEFAULT 0', 'settled_at TEXT', 'study_title TEXT'],
+    'cases': ['checking_at REAL'],
 }
 DEFAULT_COMPANY = ('c-default', 'بدون شرکت')
 
@@ -189,12 +191,21 @@ def init() -> None:
                 have = {r['name'] for r in con.execute(f'PRAGMA table_info({table})')}
                 for column in columns:
                     if column.split()[0] not in have:
-                        con.execute(f'ALTER TABLE {table} ADD COLUMN {column}')
+                        try:
+                            con.execute(f'ALTER TABLE {table} ADD COLUMN {column}')
+                        except sqlite3.OperationalError as err:  # another worker process added it a moment ago
+                            if 'duplicate column' not in str(err):
+                                raise
             rule = (FEE_RULE['feeRial'], FEE_RULE['hospitalRial'], FEE_RULE['insuranceRial'], FEE_RULE['managementRial'])
             con.execute('UPDATE hospitals SET fee_rial = ?, hospital_rial = ?, insurance_rial = ?, management_rial = ? WHERE fee_rial IS NULL', rule)
             con.execute("UPDATE zips SET fee_rial = ?, hospital_rial = ?, insurance_rial = ?, management_rial = ? WHERE fee_rial IS NULL AND status = 'READY'", rule)
             con.execute('UPDATE zips SET fee_rial = 0, hospital_rial = 0, insurance_rial = 0, management_rial = 0 WHERE fee_rial IS NULL')
             con.execute('UPDATE zips SET study_title = (SELECT study_title FROM cases WHERE cases.zip_id = zips.id) WHERE study_title IS NULL AND case_id IS NOT NULL')
+            try:
+                # One accepted ZIP per study, enforced by the database itself (see ingest.receive).
+                con.execute("CREATE UNIQUE INDEX IF NOT EXISTS zips_one_ready_study ON zips(study_uid) WHERE status = 'READY'")
+            except sqlite3.IntegrityError:
+                logging.getLogger('db').warning('Some studies were accepted twice before; the check against doubles relies on the lock in ingest.py.')
             if con.execute('SELECT 1 FROM hospitals WHERE company_id IS NULL').fetchone():
                 con.execute('INSERT OR IGNORE INTO companies (id, name) VALUES (?, ?)', DEFAULT_COMPANY)
                 con.execute('UPDATE hospitals SET company_id = ? WHERE company_id IS NULL', (DEFAULT_COMPANY[0],))

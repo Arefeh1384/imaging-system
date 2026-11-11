@@ -22,8 +22,32 @@ MAX_ATTEMPTS = 5
 SESSION_SECONDS = 12 * 3600
 
 # A secret for hashing codes and tokens, so the database never holds them in readable form.
-# Set SECRET_KEY so sessions survive a restart. Without it, a random key is made on each start.
-_PEPPER = (os.environ.get('SECRET_KEY') or secrets.token_hex(32)).encode()
+PLACEHOLDER_SECRET = 'local-only-secret-change-me'
+
+
+def _load_secret() -> bytes:
+    """SECRET_KEY when it is set to something real. Otherwise a random key made once and kept in the data folder,
+    so sign-ins survive a restart and every worker process uses the same key."""
+    given = os.environ.get('SECRET_KEY', '').strip()
+    if given and given != PLACEHOLDER_SECRET:
+        return given.encode()
+    path = settings.data_dir / 'secret.key'
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)  # only the first process to get here writes it
+        with os.fdopen(fd, 'w') as f:
+            f.write(secrets.token_hex(32))
+    except FileExistsError:
+        pass
+    for _ in range(50):  # another process may be writing it this very moment
+        key = path.read_text().strip()
+        if key:
+            return key.encode()
+        time.sleep(0.02)
+    raise RuntimeError(f'{path} is empty')
+
+
+_PEPPER = _load_secret()
 
 
 def _hash(value: str) -> str:
